@@ -1,5 +1,5 @@
 import { loadScript } from '../../scripts/scripts.js';
-
+loadScript('https://play.vidyard.com/embed/v4.js');
 export default function decorate(block) {
   const videoUrl = block.querySelector('a');
   if (videoUrl) {
@@ -9,7 +9,7 @@ export default function decorate(block) {
       const thumbObserver = new IntersectionObserver((entries) => {
         if (entries.some((e) => e.isIntersecting)) {
           thumbObserver.disconnect();
-          loadScript('https://play.vidyard.com/embed/v4.js');
+          
           thumbnail.style = 'width: 100%; margin: auto; display: block;';
           thumbnail.classList.add('vidyard-player-embed');
           thumbnail.setAttribute('data-uuid', videoId);
