@@ -29,7 +29,7 @@ export default function decorate(block) {
       const observer = new IntersectionObserver((entries) => {
         if (entries.some((e) => e.isIntersecting)) {
           observer.disconnect();
-          loadScript('https://play.vidyard.com/embed/v4.js');
+          //loadScript('https://play.vidyard.com/embed/v4.js');
           block.innerHTML = `<img style="width: 100%; margin: auto; display: block;"
             class="vidyard-player-embed"
             src="https://play.vidyard.com/${videoId}.jpg"
