@@ -1,5 +1,5 @@
 import { loadScript } from '../../scripts/scripts.js';
-loadScript('https://play.vidyard.com/embed/v4.js');
+
 export default function decorate(block) {
   const videoUrl = block.querySelector('a');
   if (videoUrl) {
@@ -9,7 +9,7 @@ export default function decorate(block) {
       const thumbObserver = new IntersectionObserver((entries) => {
         if (entries.some((e) => e.isIntersecting)) {
           thumbObserver.disconnect();
-          
+          loadScript('https://play.vidyard.com/embed/v4.js');
           thumbnail.style = 'width: 100%; margin: auto; display: block;';
           thumbnail.classList.add('vidyard-player-embed');
           thumbnail.setAttribute('data-uuid', videoId);
@@ -29,10 +29,12 @@ export default function decorate(block) {
       const observer = new IntersectionObserver((entries) => {
         if (entries.some((e) => e.isIntersecting)) {
           observer.disconnect();
-          //loadScript('https://play.vidyard.com/embed/v4.js');
+          loadScript('https://play.vidyard.com/embed/v4.js');
           block.innerHTML = `<img style="width: 100%; margin: auto; display: block;"
             class="vidyard-player-embed"
             src="https://play.vidyard.com/${videoId}.jpg"
+            width="700"
+            height="394"
             data-uuid="${videoId}"
             data-v="4"
             data-width="${block.classList.contains('lightbox') ? '700' : ''}"
