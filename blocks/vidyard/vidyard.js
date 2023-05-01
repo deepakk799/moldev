@@ -16,6 +16,8 @@ export default function decorate(block) {
           thumbnail.setAttribute('data-v', '4');
           thumbnail.setAttribute('data-width', block.classList.contains('lightbox') ? '700' : '');
           thumbnail.setAttribute('data-height', block.classList.contains('lightbox') ? '394' : '');
+          thumbnail.setAttribute('width', block.classList.contains('lightbox') ? '700' : '');
+          thumbnail.setAttribute('height', block.classList.contains('lightbox') ? '394' : '');
           thumbnail.setAttribute('data-autoplay', block.classList.contains('lightbox') ? '1' : '0');
           thumbnail.setAttribute(
             'data-type',
@@ -33,8 +35,8 @@ export default function decorate(block) {
           block.innerHTML = `<img style="width: 100%; margin: auto; display: block;"
             class="vidyard-player-embed"
             src="https://play.vidyard.com/${videoId}.jpg"
-            width="700"
-            height="394"
+            width="${block.classList.contains('lightbox') ? '700' : ''}"
+            height="${block.classList.contains('lightbox') ? '394' : ''}"
             data-uuid="${videoId}"
             data-v="4"
             data-width="${block.classList.contains('lightbox') ? '700' : ''}"
