@@ -61,9 +61,11 @@ export function buildHero(block) {
       originalHeroBg.src,
       originalHeroBg.getAttribute('alt'),
       true,
-      [
-        { media: '(min-width: 600px)', width: '2000' },
-        { width: '1200' },
+       [
+        { media: '(max-width: 575px)', width: '575' },
+        { media: '(max-width: 767px)', width: '767' },
+        { media: '(max-width: 1199px)', width: '1200' },
+        { width: '1950' },
       ],
     );
 
