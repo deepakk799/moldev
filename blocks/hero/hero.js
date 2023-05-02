@@ -1,27 +1,46 @@
 import { createOptimizedPicture, getMetadata } from '../../scripts/lib-franklin.js';
 import { formatDate } from '../../scripts/scripts.js';
-import { div, i, span, a } from '../../scripts/dom-helpers.js';
 
 function addMetadata(container) {
+  const metadataContainer = document.createElement('div');
+  metadataContainer.classList.add('metadata');
+
   const publishDate = formatDate(getMetadata('publication-date'), { month: 'long' });
+
+  const publishDateContainer = document.createElement('div');
+  publishDateContainer.innerHTML = `
+    <i class="fa fa-calendar"></i>
+    <span class="blog-publish-date">${publishDate}</span>
+  `;
+  metadataContainer.appendChild(publishDateContainer);
+
   const author = getMetadata('author');
-  container.appendChild(
-    div(
-      { class: 'metadata' },
-      div(i({ class: 'fa fa-calendar' }), span({ class: 'blog-publish-date' }, ` ${publishDate}`)),
-      author ? div(i({ class: 'fa fa-user' }), span({ class: 'blog-author' }, ` ${author}`)) : '',
-    ),
-  );
+  if (author) {
+    const authorContainer = document.createElement('div');
+    authorContainer.innerHTML = `
+      <i class="fa fa-user"></i>
+      <span class="blog-author">${author}</span>
+    `;
+    metadataContainer.appendChild(authorContainer);
+  }
+
+  container.appendChild(metadataContainer);
 }
 
 async function addBlockSticker(container) {
+  const stickerContainer = document.createElement('div');
+  stickerContainer.classList.add('sticker');
+  const sticker = document.createElement('a');
+  sticker.href = '/lab-notes';
+
   const stickerPicture = document.createElement('picture');
   stickerPicture.innerHTML = `
     <source type="image/webp" srcset="/images/lab-notes-hero-sticker.webp">
     <img loading="lazy" alt="Molecular Devices Lab Notes" type="image/png" src="/images/lab-notes-hero-sticker.png">
   `;
-
-  container.appendChild(div({ class: 'sticker' }, a({ href: '/lab-notes' }, stickerPicture)));
+  sticker.appendChild(stickerPicture);
+  stickerContainer.appendChild(sticker);
+  container.appendChild(stickerContainer);
 }
 
 async function loadBreadcrumbs(breadcrumbsContainer) {
@@ -58,7 +77,7 @@ export function buildHero(block) {
 
   const rows = block.children.length;
   [...block.children].forEach((row, i) => {
-    if (i === rows - 1) {
+    if (i === (rows - 1)) {
       if (row.childElementCount > 1) {
         container.classList.add('two-column');
         [...row.children].forEach((column) => {
