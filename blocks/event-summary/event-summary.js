@@ -6,7 +6,7 @@ import {
 
 export default async function decorate(block) {
   let startDate = getMetadata('start-date');
-  if (startDate) { 
+  if (startDate) {
     startDate = formatDate(startDate);
     // eslint-disable-next-line prefer-destructuring
     startDate = startDate.split(',')[0];
