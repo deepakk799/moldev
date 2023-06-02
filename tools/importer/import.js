@@ -1392,9 +1392,11 @@ const transformProductCompareTable = (document) => {
     // get the attributes to be displayed
     const attributes = [];
     div.querySelectorAll('.fixt-part tr td').forEach((attribute) => {
-      attributes.push(attribute.textContent);
+      const p = document.createElement('p');
+      p.append(attribute.innerHTML.replaceAll('<br>', ' '));
+      attributes.push(p);
     });
-    cells.push(['attributes', attributes.join(',')]);
+    cells.push(['attributes', attributes]);
 
     const table = WebImporter.DOMUtils.createTable(cells, document);
     div.replaceWith(table);
