@@ -405,7 +405,7 @@ const extractBackgroundImage = (content) => {
 
 const transformHero = (document) => {
   // detect the default hero styles
-  document.querySelectorAll('.section-image.cover-bg, .section-image.cover-bg-new').forEach((hero) => {
+  document.querySelectorAll('.section-image.cover-bg, .section-image.cover-bg-new, section.video-banner.message-banner').forEach((hero) => {
     // clean
     hero.querySelectorAll('.row').forEach((row) => row.removeAttribute('class'));
 
@@ -445,6 +445,17 @@ const transformHero = (document) => {
 
     const cells = [['Hero']];
     const isBlog = hero.classList.contains('blog-details');
+
+    // extract gallery links
+    let heroFilterLinks = null;
+    const heroFilterContainer = hero.querySelector('.product-res-filter');
+    if (heroFilterContainer) {
+      heroFilterContainer.remove('.active-filter');
+      heroFilterLinks = heroFilterContainer.querySelector('.views-element-container ul');
+      if (heroFilterLinks) {
+        cells[0] = ['Hero (Filter)'];
+      }
+    }
 
     // prepare hero content
     const heroContent = isBlog ? hero.querySelector('.hero-desc') : hero.querySelector('.container');
@@ -499,6 +510,10 @@ const transformHero = (document) => {
     }
 
     cells.push(row);
+    if (heroFilterLinks) {
+      cells.push([heroFilterLinks]);
+    }
+
     const table = WebImporter.DOMUtils.createTable(cells, document);
     hero.replaceWith(table);
   });
@@ -536,7 +551,7 @@ const transformSections = (document) => {
     if (section.classList.contains('franklin-horizontal')) {
       styles.push('Columns 2');
     }
-    if (section.classList.contains('greyBg')) {
+    if (section.classList.contains('greyBg') || section.classList.contains('bg-gray')) {
       styles.push('Background Grey');
     }
     if (styles.length > 0) {
@@ -1098,6 +1113,35 @@ const transformLinkedCardCarousel = (document) => {
     const table = WebImporter.DOMUtils.createTable(cells, document);
     parent.replaceWith(table);
   });
+
+  document.querySelectorAll('.web-inarblock .owl-carousel').forEach((container) => {
+    const parent = container.closest('.web-inarblock');
+    const cells = [['Carousel (Cards)']];
+
+    container.querySelectorAll('.owl-carousel .item').forEach((item) => {
+      const image = item.querySelector('img');
+      const content = item.querySelector('.card-desc');
+      cells.push([image, content]);
+    });
+
+    const table = WebImporter.DOMUtils.createTable(cells, document);
+    parent.replaceWith(table);
+  });
+};
+
+const transformVideoOverviewCards = (document) => {
+  document.querySelectorAll('.mob-accordian.list-view.col-3-no-title').forEach((container) => {
+    const cells = [['Cards (slim, left border)']];
+
+    container.querySelectorAll('a').forEach((item) => {
+      const image = item.querySelector('img');
+      const content = item.querySelector('h3');
+      cells.push([image, content]);
+    });
+
+    const table = WebImporter.DOMUtils.createTable(cells, document);
+    container.replaceWith(table);
+  });
 };
 
 // convert Citations doc styles and remove columns here,
@@ -1179,6 +1223,7 @@ const transformEmbeds = (document) => {
   // detect vidyard video player embeds using v4 code
   document.querySelectorAll('.vidyard-player-embed').forEach((vidyard) => {
     const videoId = vidyard.getAttribute('data-uuid');
+    if (!videoId) return;
     const type = vidyard.getAttribute('data-type');
     const videoContainer = vidyard.closest('.video-container');
 
@@ -1699,6 +1744,7 @@ export default {
       transformFeaturedResources,
       transformTechnologyApplications,
       transformLinkedCardCarousel,
+      transformVideoOverviewCards,
       transformResources,
       transformColumns,
       transformImageLinks,
