@@ -85,6 +85,9 @@ const loadResourceMetaAttributes = (url, params, document, meta) => {
   if (resource) {
     if (resource['Asset Type']) {
       document.type = resource['Asset Type'];
+      if (document.type === 'Category') {
+        meta.Template = 'Category';
+      }
     }
     if (resource['Tagged to Products']) {
       meta['Related Products'] = resource['Tagged to Products'];
@@ -262,9 +265,11 @@ const loadResourceMetaAttributes = (url, params, document, meta) => {
       }
     }
 
-    const publishDate = new Date(resource['Created On']);
-    if (publishDate) {
-      meta['Publication Date'] = formatDate(publishDate);
+    if (resource['Created On']) {
+      const publishDate = new Date(resource['Created On']);
+      if (publishDate) {
+        meta['Publication Date'] = formatDate(publishDate);
+      }
     }
   } else {
     console.warn('Resource item for %s not found', params.originalURL);
@@ -1127,6 +1132,46 @@ const transformLinkedCardCarousel = (document) => {
     const table = WebImporter.DOMUtils.createTable(cells, document);
     parent.replaceWith(table);
   });
+
+  document.querySelectorAll('.catCarousalWrap .owl-carousel').forEach((container) => {
+    const parent = container.closest('.catCarousalWrap');
+    const cells = [['Carousel (Cards)']];
+
+    container.querySelectorAll('.owl-carousel .item').forEach((item) => {
+      const imageDiv = item.querySelector('.prothumb');
+      const imgUrl = extractBackgroundImage(imageDiv);
+      const image = document.createElement('img');
+      image.src = makeUrlRelative(imgUrl);
+      const content = item.querySelector('.pro-details');
+      const detailsLink = document.createElement('a');
+      detailsLink.textContent = 'Details';
+      detailsLink.href = item.querySelector('a').href;
+      content.append(detailsLink);
+
+      cells.push([image, content]);
+    });
+
+    const table = WebImporter.DOMUtils.createTable(cells, document);
+    parent.replaceWith(table);
+  });
+
+  document.querySelectorAll('.spectra-block .owl-carousel').forEach((container) => {
+    const parent = container.closest('.spectra-block');
+    const cells = [['Carousel (Cards)']];
+
+    container.querySelectorAll('.owl-carousel .item').forEach((item) => {
+      const image = item.querySelector('img');
+      const content = item.querySelector('.pro-details');
+      const detailsLink = item.querySelector('.compare-box a');
+
+      content.append(detailsLink);
+
+      cells.push([image, content]);
+    });
+
+    const table = WebImporter.DOMUtils.createTable(cells, document);
+    parent.replaceWith(table);
+  });
 };
 
 const transformVideoOverviewCards = (document) => {
@@ -1426,7 +1471,7 @@ const transformProductCompareTable = (document) => {
 
     // get the products
     const productLinks = [];
-    div.querySelectorAll('#productcomparison th .comp-tbl-lbl a').forEach((productLink) => {
+    div.querySelectorAll('#productcomparison th .comp-tbl-lbl a, #productcomparison th .pro-details a').forEach((productLink) => {
       const filename = productLink.href.substring(productLink.href.lastIndexOf('/') + 1);
       const p = document.createElement('p');
       p.append(`https://main--moleculardevices--hlxsites.hlx.page/products/specifications/${filename}.json`);
