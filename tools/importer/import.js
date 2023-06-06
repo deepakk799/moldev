@@ -947,13 +947,15 @@ const transformReferenceToColumns = (document) => {
  */
 const transformReferenceProducts = (document) => {
   document.querySelectorAll('.featured-applications-div').forEach((featuredProductsBlock) => {
-    const parentSection = featuredProductsBlock.closest('section');
-    parentSection.classList.add('franklin-horizontal');
-    const featuredProducts = featuredProductsBlock.querySelector('.view-customer-story-product');
-    const cells = [['Featured Products Carousel (mini)']];
-    featuredProducts.querySelectorAll('.product-container').forEach((p) => cells.push([...p.children]));
-    const table = WebImporter.DOMUtils.createTable(cells, document);
-    featuredProducts.replaceWith(table);
+    if (featuredProductsBlock.querySelector('.product-container')) {
+      const parentSection = featuredProductsBlock.closest('section');
+      parentSection.classList.add('franklin-horizontal');
+      const featuredProducts = featuredProductsBlock.querySelector('.view-customer-story-product');
+      const cells = [['Featured Products Carousel (mini)']];
+      featuredProducts.querySelectorAll('.product-container').forEach((p) => cells.push([...p.children]));
+      const table = WebImporter.DOMUtils.createTable(cells, document);
+      featuredProducts.replaceWith(table);
+    }
   });
 };
 
@@ -1101,6 +1103,46 @@ const transformCustomerBreakthroughShareStory = (document) => {
   });
 };
 
+const transformCustomerBreakthroughTeaser = (document) => {
+  document.querySelectorAll('.comment-part').forEach((story) => {
+    story.before(document.createElement('hr'));
+
+    const cells = [['Wave Teaser']];
+    if (story.classList.contains('right-breakthrough')) {
+      cells[0] = ['Wave Teaser (Image Right)'];
+    }
+
+    if (story.classList.contains('green')) {
+      const metaDataCells = [['Section Metadata'], ['style', 'Wave, WaveCarousel, BlueGreen']];
+      const sectionMetaData = WebImporter.DOMUtils.createTable(metaDataCells, document);
+      story.after(sectionMetaData, document.createElement('hr'));
+    } else {
+      story.after(document.createElement('hr'));
+    }
+
+    const content = story.querySelector('.comment-text');
+    if (content.querySelector('.blue-chat-title')) {
+      const h4 = document.createElement('h4');
+      h4.textContent = content.querySelector('.blue-chat-title').textContent;
+      content.querySelector('.blue-chat-title').replaceWith(h4);
+    }
+
+    let image = null;
+    const imageDiv = story.querySelector('div.desktop-view-comment-img');
+    if (imageDiv) {
+      const imgUrl = extractBackgroundImage(imageDiv);
+      if (imgUrl) {
+        image = document.createElement('img');
+        image.src = makeUrlRelative(imgUrl);
+      }
+    }
+    cells.push([image, content]);
+
+    const table = WebImporter.DOMUtils.createTable(cells, document);
+    story.replaceWith(table);
+  });
+};
+
 const transformLinkedCardCarousel = (document) => {
   document.querySelectorAll('.products-container-area .owl-carousel').forEach((container) => {
     const parent = container.closest('.products-container-area');
@@ -1139,9 +1181,14 @@ const transformLinkedCardCarousel = (document) => {
 
     container.querySelectorAll('.owl-carousel .item').forEach((item) => {
       const imageDiv = item.querySelector('.prothumb');
-      const imgUrl = extractBackgroundImage(imageDiv);
-      const image = document.createElement('img');
-      image.src = makeUrlRelative(imgUrl);
+      let image = imageDiv.querySelector('img');
+      if (!image) {
+        const imgUrl = extractBackgroundImage(imageDiv);
+        if (imgUrl) {
+          image = document.createElement('img');
+          image.src = makeUrlRelative(imgUrl);
+        }
+      }
       const content = item.querySelector('.pro-details');
       const detailsLink = document.createElement('a');
       detailsLink.textContent = 'Details';
@@ -1155,8 +1202,26 @@ const transformLinkedCardCarousel = (document) => {
     parent.replaceWith(table);
   });
 
-  document.querySelectorAll('.spectra-block .owl-carousel').forEach((container) => {
-    const parent = container.closest('.spectra-block');
+  // document.querySelectorAll('.spectra-block .owl-carousel').forEach((container) => {
+  //   const parent = container.closest('.spectra-block');
+  //   const cells = [['Carousel (Cards)']];
+
+  //   container.querySelectorAll('.owl-carousel .item').forEach((item) => {
+  //     const image = item.querySelector('img');
+  //     const content = item.querySelector('.pro-details');
+  //     const detailsLink = item.querySelector('.compare-box a');
+
+  //     content.append(detailsLink);
+
+  //     cells.push([image, content]);
+  //   });
+
+  //   const table = WebImporter.DOMUtils.createTable(cells, document);
+  //   parent.replaceWith(table);
+  // });
+
+  document.querySelectorAll('.category-page-section .app-n-res .owl-carousel').forEach((container) => {
+    const parent = container.closest('.app-n-res');
     const cells = [['Carousel (Cards)']];
 
     container.querySelectorAll('.owl-carousel .item').forEach((item) => {
@@ -1467,7 +1532,7 @@ const transformTechnologyApplications = (document) => {
 
 const transformProductCompareTable = (document) => {
   document.querySelectorAll('#platereadertbllink').forEach((div) => {
-    const cells = [['Product Comparsion']];
+    const cells = [['Product Comparison']];
 
     // get the products
     const productLinks = [];
@@ -1773,6 +1838,7 @@ export default {
       transformListCaption,
       transformCustomerBreakthroughShareStory,
       transformCustomerBreakthroughCarousel,
+      transformCustomerBreakthroughTeaser,
       transformTabsNav,
       transformTabsSections,
       transformProductOverview,
