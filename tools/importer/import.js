@@ -355,6 +355,9 @@ const createMetadata = (url, document) => {
     meta.Image = el;
   }
 
+  if (document.querySelector('body.page-node-type-landing-pages')) {
+    meta.Template = 'Landing Page ';
+  }
   return meta;
 };
 
@@ -401,8 +404,10 @@ const extractBackgroundImage = (content) => {
   }
 
   // fallback and check on attributes
-  if (content.hasAttribute('style') && content.getAttribute('style').match(/background-image: url(?:\(['"]?)(.*?)(?:['"]?\))/)) {
-    const backgroundUrl = content.getAttribute('style').match(/background-image: url(?:\(['"]?)(.*?)(?:['"]?\))/)[1];
+  const style = content.hasAttribute('style') ? content.getAttribute('style').replace(/(\r\n|\n|\r)/gm, '') : null;
+
+  if (style && style.match(/background-image: url(?:\(['"]?)(.*?)(?:['"]?\))/)) {
+    const backgroundUrl = style.match(/background-image: url(?:\(['"]?)(.*?)(?:['"]?\))/)[1];
     return backgroundUrl ? makeUrlRelative(backgroundUrl.trim()) : null;
   }
   return null;
@@ -527,13 +532,14 @@ const transformHero = (document) => {
   document.querySelectorAll('.ebook-banner.wave').forEach((hero) => {
     const cells = [['Hero (wave)']];
     const heroContent = hero.querySelector('.mol-content');
+    const heroThumbnail = hero.querySelector('.mol-img');
     const backgroundUrl = extractBackgroundImage(hero);
     if (backgroundUrl) {
       const img = document.createElement('img');
       img.src = backgroundUrl;
-      heroContent.insertBefore(img, heroContent.firstChild);
+      cells.push([img]);
     }
-    cells.push([heroContent]);
+    cells.push([heroContent, heroThumbnail]);
     const table = WebImporter.DOMUtils.createTable(cells, document);
     hero.replaceWith(table);
   });
@@ -866,6 +872,21 @@ const transformTables = (document) => {
   });
 };
 
+const transformLandingPageSamplePagesColumns = (document) => {
+  const container = document.querySelector('.sample-pages > .row');
+  if (container) {
+    const cells = [['Columns'], []];
+    container.querySelectorAll('div.col-xs-4').forEach((col) => {
+      col.className = '';
+      cells[1].push([col]);
+    });
+
+    const table = WebImporter.DOMUtils.createTable(cells, document);
+    container.replaceWith(table);
+    table.after(document.createElement('hr'));
+  }
+};
+
 const transformColumns = (document) => {
   const COLUMN_STYLES = [
     {
@@ -900,7 +921,6 @@ const transformColumns = (document) => {
           const metaCells = [['Section Metadata'], [['style'], ['Columns 2']]];
           const metaTable = WebImporter.DOMUtils.createTable(metaCells, document);
           row.append(metaTable);
-          //row.after(document.createElement('hr'));
         } else {
           const cells = [['Columns']];
           const blockOptions = [];
@@ -1653,6 +1673,40 @@ const transformElisaWorkflow = (document) => {
   });
 };
 
+const transformLandingPageRegistration = (document) => {
+  const container = document.querySelector('section.register-ebook');
+  if (container) {
+    const imgUrl = extractBackgroundImage(container);
+    let backgroundImage = null;
+    if (imgUrl) {
+      backgroundImage = document.createElement('img');
+      backgroundImage.src = imgUrl;
+    }
+
+    const content = container.querySelector('.container .row div');
+    if (content) {
+      container.before(content);
+    }
+
+    const metaCells = [['Section Metadata'], [['style'], ['Download Form']]];
+    if (backgroundImage) {
+      metaCells.push(['Background', backgroundImage]);
+    }
+    const metaTable = WebImporter.DOMUtils.createTable(metaCells, document);
+
+    // creating some thank you message placeholder
+    const placeholder = document.createElement('div');
+    const heading2 = document.createElement('h2');
+    heading2.textContent = 'Interested in learning more?';
+    placeholder.append(heading2);
+
+    const thankyouMetaCells = [['Section Metadata'], [['style'], ['Thank you page']]];
+    const thankyouMetaTable = WebImporter.DOMUtils.createTable(thankyouMetaCells, document);
+
+    container.append(metaTable, document.createElement('hr'), placeholder, thankyouMetaTable, document.createElement('hr'));
+  }
+};
+
 const prepareRequestQuoteLinks = (document) => {
   if (document.pid) {
     document.querySelectorAll('a').forEach((a) => {
@@ -1857,6 +1911,8 @@ export default {
       transformLinkedCardCarousel,
       transformVideoOverviewCards,
       transformResources,
+      transformLandingPageRegistration,
+      transformLandingPageSamplePagesColumns,
       transformColumns,
       transformImageLinks,
     ].forEach((f) => f.call(null, document));
@@ -1875,14 +1931,9 @@ export default {
    * @param {object} params Object containing some parameters given by the import process.
    * @return {string} The path
    */
+
   generateDocumentPath: ({
     // eslint-disable-next-line no-unused-vars
-    document,
-    url,
-    html,
-    params,
-  }) =>
-    WebImporter.FileUtils.sanitizePath(
-      new URL(url).pathname.replace(/\.html$/, '').replace(/\/$/, '')
-    ),
+    document, url, html, params,
+  }) => WebImporter.FileUtils.sanitizePath(new URL(url).pathname.replace(/\.html$/, '').replace(/\/$/, '')),
 };
