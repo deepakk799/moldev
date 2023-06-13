@@ -1310,7 +1310,7 @@ const transformEventDetails = (document) => {
 
     const relatedProducts = document.querySelector('.pro_car_wrap');
     if (relatedProducts) {
-      const cells = [['Cards (Products, Quote)']];
+      const cells = [['Product Carousel']];
       cells.push([[...relatedProducts.querySelectorAll('.item h3 a')]]);
       const table = WebImporter.DOMUtils.createTable(cells, document);
       relatedProducts.replaceWith(table);
@@ -1622,6 +1622,8 @@ const transformCategorySubSections = (document) => {
     const children = [...div.children];
 
     cells.push(children);
+    const table = WebImporter.DOMUtils.createTable(cells, document);
+    div.replaceWith(table);
   });
 };
 
@@ -1759,7 +1761,10 @@ export default {
    * Apply DOM pre processing
    * @param {HTMLDocument} document The document
    */
-  preprocess: ({ document, url, html, params }) => {
+  preprocess: ({
+    // eslint-disable-next-line no-unused-vars
+    document, url, html, params,
+  }) => {
     // try to fix malformed URLs
     document.querySelectorAll('a').forEach((a) => {
       const { href } = a;
@@ -1825,10 +1830,7 @@ export default {
    */
   transformDOM: ({
     // eslint-disable-next-line no-unused-vars
-    document,
-    url,
-    html,
-    params,
+    document, url, html, params,
   }) => {
     // define the main element: the one that will be transformed to Markdown
     const main = document.body;
@@ -1935,5 +1937,10 @@ export default {
   generateDocumentPath: ({
     // eslint-disable-next-line no-unused-vars
     document, url, html, params,
-  }) => WebImporter.FileUtils.sanitizePath(new URL(url).pathname.replace(/\.html$/, '').replace(/\/$/, '')),
+  }) => {
+    if (url.indexOf('page=thankyou') > -1) {
+      return WebImporter.FileUtils.sanitizePath(new URL(url).pathname.replace(/\.html$/, '').replace(/\/$/, '').concat('-thankyou'));
+    }
+    return WebImporter.FileUtils.sanitizePath(new URL(url).pathname.replace(/\.html$/, '').replace(/\/$/, ''));
+  },
 };
