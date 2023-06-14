@@ -376,9 +376,9 @@ const cleanUp = (document) => {
   document.querySelectorAll('table').forEach((table) => {
     table.innerHTML = table.innerHTML.replace(/\\~/gm, '~');
   });
-  document
-    .querySelectorAll('.row > [class*="col-"][class*="-12"]')
-    .forEach((col) => col.classList.remove('col-xs-12', 'col-sm-12', 'col-md-12', 'col-lg-12'));
+  // document
+  //   .querySelectorAll('.row > [class*="col-"][class*="-12"]')
+  //   .forEach((col) => col.classList.remove('col-xs-12', 'col-sm-12', 'col-md-12', 'col-lg-12'));
   document.querySelectorAll('.content-section .listing-image.ico-list').forEach((div) => {
     if (div.textContent.trim() === '') {
       div.remove();
@@ -911,6 +911,10 @@ const transformColumns = (document) => {
   });
 
   document.querySelectorAll('.row [class*="col-"]:first-of-type').forEach((column) => {
+    // skip for blogs
+    if (column.closest('.blogContentBox')) {
+      return;
+    }
     column.id = 'col';
     const row = column.closest('.row:not(#col)');
     if (row) {
@@ -1046,7 +1050,7 @@ const transformImageLinks = (document) => {
 
 const transformListCaption = (document) => {
   document.querySelectorAll('ol.text-caption').forEach((caption) => {
-    caption.children.forEach((li) => {
+    [...caption.children].forEach((li) => {
       const liEm = document.createElement('em');
       liEm.innerHTML = li.innerHTML;
       li.appendChild(liEm);
