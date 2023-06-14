@@ -376,9 +376,9 @@ const cleanUp = (document) => {
   document.querySelectorAll('table').forEach((table) => {
     table.innerHTML = table.innerHTML.replace(/\\~/gm, '~');
   });
-  // document
-  //   .querySelectorAll('.row > [class*="col-"][class*="-12"]')
-  //   .forEach((col) => col.classList.remove('col-xs-12', 'col-sm-12', 'col-md-12', 'col-lg-12'));
+  document
+    .querySelectorAll('.row [class*="col-"][class*="-12"]')
+    .forEach((col) => col.classList.remove('col-xs-12', 'col-sm-12', 'col-md-12', 'col-lg-12'));
   document.querySelectorAll('.content-section .listing-image.ico-list').forEach((div) => {
     if (div.textContent.trim() === '') {
       div.remove();
@@ -910,52 +910,103 @@ const transformColumns = (document) => {
     div.remove();
   });
 
-  document.querySelectorAll('.row [class*="col-"]:first-of-type').forEach((column) => {
-    // skip for blogs
-    if (column.closest('.blogContentBox')) {
-      return;
+  while (document.querySelector('.row [class*="col-"]')) {
+    let blockColumns = [];
+    const colToRemove = [];
+    let col = document.querySelector('.row [class*="col-"]');
+    let newCol = col.cloneNode(true);
+    newCol.className = '';
+    blockColumns.push(newCol);
+    colToRemove.push(col);
+    while (col.nextElementSibling && col.nextElementSibling.className.indexOf('col-') > -1) {
+      col = col.nextElementSibling;
+      newCol = col.cloneNode(true);
+      newCol.className = '';
+      blockColumns.push(newCol);
+      colToRemove.push(col);
     }
-    column.id = 'col';
-    const row = column.closest('.row:not(#col)');
-    if (row) {
-      const sectionStyle = row.classList.contains('section') || row.querySelector('table');
-      if (row.childElementCount > 1 && !row.closest('section.franklin-horizontal')) {
-        if (sectionStyle) {
-          row.before(document.createElement('hr'));
-          const metaCells = [['Section Metadata'], [['style'], ['Columns 2']]];
-          const metaTable = WebImporter.DOMUtils.createTable(metaCells, document);
-          row.append(metaTable);
-        } else {
-          const cells = [['Columns']];
-          const blockOptions = [];
-          [...row.children].forEach((col) => {
-            if (col.classList.length === 1 && col.className.indexOf('-12') > 0) {
-              row.after(col);
-            }
-          });
-          // check swap / reverse order tables
-          let children = [...row.children];
-          if (row.classList.contains('swap')) {
-            children = children.reverse();
-            blockOptions.push('swap');
-          }
-          // match column width layouts
-          // eslint-disable-next-line max-len
-          const styleMatch = COLUMN_STYLES.find((e) => e.match.some((match) => column.classList.contains(match)));
-          if (styleMatch) {
-            blockOptions.push(styleMatch.blockStyle);
-          }
 
-          if (blockOptions.length > 0) {
-            cells[0] = [`Columns (${blockOptions.join(', ')})`];
-          }
-          cells.push(children);
-          const table = WebImporter.DOMUtils.createTable(cells, document);
-          row.replaceWith(table);
-        }
+    const firstCol = colToRemove[0];
+    const row = firstCol.closest('.row:not(#col)');
+
+    if (firstCol.closest('section.franklin-horizontal')) {
+      firstCol.before(document.createElement('hr'));
+      const metaCells = [['Section Metadata'], [['style'], ['Columns 2']]];
+      const metaTable = WebImporter.DOMUtils.createTable(metaCells, document);
+      const lastCol = colToRemove[colToRemove.length - 1];
+      lastCol.after(metaTable);
+    } else {
+      const cells = [['Columns']];
+      const blockOptions = [];
+      // check swap / reverse order tables
+      if (row.classList.contains('swap')) {
+        blockColumns = blockColumns.reverse();
+        blockOptions.push('swap');
       }
+
+      // match column width layouts
+      // eslint-disable-next-line max-len, no-loop-func
+      const styleMatch = COLUMN_STYLES.find((e) => e.match.some((match) => firstCol.classList.contains(match)));
+      if (styleMatch) {
+        blockOptions.push(styleMatch.blockStyle);
+      }
+
+      if (blockOptions.length > 0) {
+        cells[0] = [`Columns (${blockOptions.join(', ')})`];
+      }
+
+      cells.push(blockColumns);
+      const table = WebImporter.DOMUtils.createTable(cells, document);
+      firstCol.before(table);
+      colToRemove.forEach((delCol) => {
+        delCol.remove();
+      });
     }
-  });
+  }
+
+  // keeping the old col parsing logic !!!
+  // document.querySelectorAll('.row [class*="col-"]:first-of-type').forEach((column) => {
+  // column.id = 'col';
+  // const row = column.closest('.row:not(#col)');
+  // if (row) {
+  //   const sectionStyle = row.classList.contains('section') || row.querySelector('table');
+  //   if (row.childElementCount > 1 && !row.closest('section.franklin-horizontal')) {
+  //     if (sectionStyle) {
+  //       row.before(document.createElement('hr'));
+  //       const metaCells = [['Section Metadata'], [['style'], ['Columns 2']]];
+  //       const metaTable = WebImporter.DOMUtils.createTable(metaCells, document);
+  //       row.append(metaTable);
+  //     } else {
+  //       const cells = [['Columns']];
+  //       const blockOptions = [];
+  //       [...row.children].forEach((col) => {
+  //         if (col.classList.length === 1 && col.className.indexOf('-12') > 0) {
+  //           row.after(col);
+  //         }
+  //       });
+  //       // check swap / reverse order tables
+  //       let children = [...row.children];
+  //       if (row.classList.contains('swap')) {
+  //         children = children.reverse();
+  //         blockOptions.push('swap');
+  //       }
+  //       // match column width layouts
+  //       // eslint-disable-next-line max-len
+  //       const styleMatch = COLUMN_STYLES.find((e) => e.match.some((match) => column.classList.contains(match)));
+  //       if (styleMatch) {
+  //         blockOptions.push(styleMatch.blockStyle);
+  //       }
+
+  //       if (blockOptions.length > 0) {
+  //         cells[0] = [`Columns (${blockOptions.join(', ')})`];
+  //       }
+  //       cells.push(children);
+  //       const table = WebImporter.DOMUtils.createTable(cells, document);
+  //       row.replaceWith(table);
+  //     }
+  //   }
+  // }
+  // });
 };
 
 const transformReferenceToColumns = (document) => {
@@ -1035,6 +1086,14 @@ const transformImageCaption = (document) => {
     const captionWrapper = document.createElement('em');
     captionWrapper.innerHTML = caption.innerHTML;
     caption.replaceWith(captionWrapper);
+
+    const previousNodeName = captionWrapper.previousElementSibling.nodeName;
+    if (previousNodeName === 'BR' || previousNodeName === 'A') {
+      if (previousNodeName === 'BR') captionWrapper.previousElementSibling.remove();
+      const paragraphWrapper = document.createElement('p');
+      paragraphWrapper.innerHTML = captionWrapper.outerHTML;
+      captionWrapper.replaceWith(paragraphWrapper);
+    }
   });
 };
 
