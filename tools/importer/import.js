@@ -1107,6 +1107,20 @@ const transformImageLinks = (document) => {
   });
 };
 
+const transformHashLinks = (document) => {
+  document.querySelectorAll('[href*="#"]').forEach((link) => {
+    if (link.href.indexOf('about:blank#') > -1) {
+      const hashId = link.href.substring(link.href.lastIndexOf('#') + 1);
+      const idElement = document.getElementById(hashId);
+      if (idElement) {
+        const newHash = toClassName(idElement.textContent);
+        const path = WebImporter.FileUtils.sanitizePath(new URL(document.originalURL).pathname.replace(/\.html$/, '').replace(/\/$/, ''));
+        link.href = `${path}#${newHash}`;
+      }
+    }
+  });
+};
+
 const transformListCaption = (document) => {
   document.querySelectorAll('ol.text-caption').forEach((caption) => {
     [...caption.children].forEach((li) => {
@@ -1914,6 +1928,7 @@ export default {
       '.sticky-social-list',
       '.back-labnote',
       '.recent-posts .overview-page',
+      '.visually-hidden.focusable.skip-link',
       '.ins-nav-container',
       '.OneLinkShow_zh',
       '.onetrust-consent-sdk',
@@ -1943,6 +1958,7 @@ export default {
       transformHero,
       transformTables,
       transformButtons,
+      transformHashLinks,
       transformCitations,
       transformEventDetails,
       transformImageGallery,
