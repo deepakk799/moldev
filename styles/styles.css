@@ -10,6 +10,29 @@
  * governing permissions and limitations under the License.
  */
 
+ /* Try to get the fonts from the cache */
+@font-face {
+  font-family: 'Proxima Nova Rg';
+  src: local('Proxima Nova Rg');
+  font-weight: normal;
+  font-style: normal
+}
+
+@font-face {
+  font-family: 'Proxima Nova Th';
+  src: local('Proxima Nova Th');
+  font-weight: 800;
+  font-style: normal
+}
+
+@font-face {
+  font-family: 'Proxima Nova Lt';
+  src: local('Proxima Nova Lt');
+  font-weight: 300;
+  font-style: normal
+}
+
+/* Define fallbacks */
 @font-face {
   font-family: 'Proxima Nova Regular Fallback';
   font-style: normal;
@@ -90,9 +113,9 @@
   --accordion-color-white: #fff;
 
   /* fonts */
-  --ff-proxima-regular: 'Proxima Nova Regular', 'Proxima Nova Regular Fallback', 'helvetica neue', helvetica, arial, sans-serif;
-  --ff-proxima-xbold: 'Proxima Nova ExtraBold', 'Proxima Nova ExtraBold Fallback', 'helvetica neue', helvetica, arial, sans-serif;
-  --ff-proxima-light: 'Proxima Nova Light', 'Proxima Nova Light Fallback', 'helvetica neue', helvetica, arial, sans-serif;
+  --ff-proxima-regular: 'Proxima Nova Rg', 'Proxima Nova Regular Fallback', 'helvetica neue', helvetica, arial, sans-serif;
+  --ff-proxima-xbold: 'Proxima Nova Th', 'Proxima Nova ExtraBold Fallback', 'helvetica neue', helvetica, arial, sans-serif;
+  --ff-proxima-light: 'Proxima Nova Lt', 'Proxima Nova Light Fallback', 'helvetica neue', helvetica, arial, sans-serif;
   --fixed-font-family: menlo, monaco, consolas, "courier new", monospace;
 
   /* font size */
