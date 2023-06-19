@@ -15,21 +15,24 @@
   font-family: 'Proxima Nova Rg';
   src: local('Proxima Nova Rg');
   font-weight: normal;
-  font-style: normal
+  font-style: normal;
+  font-display: block;
 }
 
 @font-face {
   font-family: 'Proxima Nova Th';
   src: local('Proxima Nova Th');
   font-weight: 800;
-  font-style: normal
+  font-style: normal;
+  font-display: block;
 }
 
 @font-face {
   font-family: 'Proxima Nova Lt';
   src: local('Proxima Nova Lt');
   font-weight: 300;
-  font-style: normal
+  font-style: normal;
+  font-display: block;
 }
 
 /* Define fallbacks */
