@@ -89,6 +89,9 @@ const loadResourceMetaAttributes = (url, params, document, meta) => {
         meta.Template = 'Category';
       }
     }
+    if (!meta.Title) {
+      meta.Title = resource.Title;
+    }
     if (resource['Tagged to Products']) {
       meta['Related Products'] = resource['Tagged to Products'];
     }
@@ -171,7 +174,6 @@ const loadResourceMetaAttributes = (url, params, document, meta) => {
       if (resource['Citation Number']) {
         meta['Citation Number'] = resource['Citation Number'];
       }
-      meta.Title = resource.Title;
     }
 
     if (params.originalURL.indexOf('/events/') > 0) {
@@ -198,6 +200,9 @@ const loadResourceMetaAttributes = (url, params, document, meta) => {
       if (resource['PRODUCT TYPE']) {
         meta['Product Type'] = resource['PRODUCT TYPE'];
         document.productType = resource['PRODUCT TYPE'];
+      }
+      if (resource.Title) {
+        meta.Identifier = resource.Title;
       }
       if (resource['SHOPIFY HANDLES']) {
         document.shopfiyHandler = resource['SHOPIFY HANDLES'];
@@ -226,6 +231,17 @@ const loadResourceMetaAttributes = (url, params, document, meta) => {
       }
       if (resource['PRODUCT READ MODE TYPES']) {
         meta['Read Mode Types'] = resource['PRODUCT READ MODE TYPES'];
+      }
+
+      // get the spec sheet and link it
+      const specRequest = new XMLHttpRequest();
+      const filename = params.originalURL.substring(document.originalURL.lastIndexOf('/') + 1);
+      const specURL = `https://main--moleculardevices--hlxsites.hlx.page/products/specifications/${filename}.json`;
+      specRequest.open('GET', specURL, false);
+      specRequest.overrideMimeType('text/json; UTF-8');
+      specRequest.send(null);
+      if (specRequest.status === 200) {
+        meta.Specifications = specURL;
       }
     }
 
@@ -335,8 +351,13 @@ const createMetadata = (url, document) => {
       .trim();
   }
 
+  const ogTitle = document.querySelector('meta[property="og:title"]');
+  if (ogTitle && ogTitle.content !== meta.Title) {
+    meta['og:title'] = ogTitle.content;
+  }
+
   const desc = document.querySelector('meta[name="description"]');
-  const ogDesc = document.querySelector('[property="og:description"]');
+  const ogDesc = document.querySelector('meta[property="og:description"]');
   if (desc) {
     meta.Description = desc.content;
     if (ogDesc) {
@@ -347,7 +368,12 @@ const createMetadata = (url, document) => {
     meta.Description = ogDesc.content;
   }
 
-  const img = document.querySelector('[property="og:image"]');
+  const keywords = document.querySelector('meta[name="keywords"]');
+  if (keywords) {
+    meta.Keywords = keywords.content;
+  }
+
+  const img = document.querySelector('meta[property="og:image"]');
   if (img && img.content) {
     const el = document.createElement('img');
     const imgUrl = img.content;
@@ -866,7 +892,10 @@ const transformTables = (document) => {
     // create block table head row
     const tr = table.insertRow(0);
     const th = document.createElement('th');
-    th.textContent = table.closest('#Order') ? 'Table (Order)' : 'Table';
+    const options = [];
+    if (table.closest('#Order')) options.push('Order');
+    if (table.classList.contains('cm-product-table')) options.push('Options Compare');
+    th.textContent = options.length > 0 ? `Table (${options.join(',')})` : 'Table';
     th.setAttribute('colspan', numCols);
     tr.append(th);
   });
@@ -898,8 +927,16 @@ const transformColumns = (document) => {
       blockStyle: 'layout 25 75',
     },
     {
+      match: ['col-sm-5', 'col-md-5', 'col-lg-5'],
+      blockStyle: 'layout 40 60',
+    },
+    {
       match: ['col-sm-8', 'col-md-8', 'col-lg-8'],
       blockStyle: 'layout 66 33',
+    },
+    {
+      match: ['col-sm-7', 'col-md-7', 'col-lg-7'],
+      blockStyle: 'layout 60 40',
     },
   ];
 
@@ -1109,7 +1146,7 @@ const transformImageLinks = (document) => {
 
 const transformHashLinks = (document) => {
   document.querySelectorAll('[href*="#"]').forEach((link) => {
-    if (link.href.indexOf('about:blank#') > -1) {
+    if (link.href && link.href.indexOf('about:blank#') > -1) {
       const hashId = link.href.substring(link.href.lastIndexOf('#') + 1);
       const idElement = document.getElementById(hashId);
       if (idElement) {
@@ -1130,6 +1167,47 @@ const transformListCaption = (document) => {
     });
   });
 };
+
+const transformBlogToc = (document) => {
+  if (document.querySelector('.blogContentBox')) {
+    document.querySelectorAll('.blogContentBox ul, .blogContentBox ol').forEach((list) => {
+      if (list.parentElement.closest('ul, ol')) return;
+      if (list.querySelector('a')) {
+        let isToC = true;
+        [...list.children].forEach((li) => {
+          if (li.childElementCount === 1 && li.querySelector('a')) {
+            if (li.querySelector('a').href.indexOf('about:blank#') < 0) {
+              isToC = false;
+            }
+          } else if (li.querySelector('ul, ol')) {
+            [...li.querySelectorAll('ul, ol')].forEach((innerList) => {
+              if (innerList.querySelector('a')) {
+                [...innerList.children].forEach((innerLi) => {
+                  if (innerLi.childElementCount === 1 && innerLi.querySelector('a')) {
+                    if (innerLi.querySelector('a').href.indexOf('about:blank#') < 0) {
+                      isToC = false;
+                    }
+                  } else {
+                    isToC = false;
+                  }
+                });
+              }
+            });
+          } else {
+            isToC = false;
+          }
+        });
+
+        if (isToC) {
+          const cells = [[list.nodeName === 'OL' ? 'TOC (Numbers)' : 'TOC']];
+          const table = WebImporter.DOMUtils.createTable(cells, document);
+          list.replaceWith(table);
+        }
+      }
+    });
+  }
+};
+
 
 const transformBlogRecentPostsCarousel = (document) => {
   document.querySelectorAll('.recent-posts').forEach((recentPostsContainer) => {
@@ -1629,30 +1707,32 @@ const transformTechnologyApplications = (document) => {
 
 const transformProductCompareTable = (document) => {
   document.querySelectorAll('#platereadertbllink').forEach((div) => {
-    const cells = [['Product Comparison']];
+    if (div.querySelector('table.fixt-part') && div.querySelector('table#productcomparison')) {
+      const cells = [['Product Comparison']];
 
-    // get the products
-    const productLinks = [];
-    div.querySelectorAll('#productcomparison th .comp-tbl-lbl a, #productcomparison th .pro-details a').forEach((productLink) => {
-      const filename = productLink.href.substring(productLink.href.lastIndexOf('/') + 1);
-      const p = document.createElement('p');
-      p.append(`https://main--moleculardevices--hlxsites.hlx.page/products/specifications/${filename}.json`);
-      productLinks.push(p);
-    });
-    cells.push(['products', productLinks]);
+      // get the products
+      const productLinks = [];
+      div.querySelectorAll('#productcomparison th .comp-tbl-lbl a, #productcomparison th .pro-details a').forEach((productLink) => {
+        const filename = productLink.href.substring(productLink.href.lastIndexOf('/') + 1);
+        const p = document.createElement('p');
+        p.append(`https://main--moleculardevices--hlxsites.hlx.page/products/specifications/${filename}.json`);
+        productLinks.push(p);
+      });
+      cells.push(['products', productLinks]);
 
-    // get the attributes to be displayed
-    const attributes = [];
-    div.querySelectorAll('.fixt-part tr td').forEach((attribute) => {
-      const p = document.createElement('p');
-      p.append(attribute.innerHTML.replaceAll('<br>', ' '));
-      attributes.push(p);
-    });
-    cells.push(['attributes', attributes]);
+      // get the attributes to be displayed
+      const attributes = [];
+      div.querySelectorAll('.fixt-part tr td').forEach((attribute) => {
+        const p = document.createElement('p');
+        p.append(attribute.innerHTML.replaceAll('<br>', ' '));
+        attributes.push(p);
+      });
+      cells.push(['attributes', attributes]);
 
-    const table = WebImporter.DOMUtils.createTable(cells, document);
-    div.replaceWith(table);
-    table.before(document.createElement('hr'));
+      const table = WebImporter.DOMUtils.createTable(cells, document);
+      div.replaceWith(table);
+      table.before(document.createElement('hr'));
+    }
   });
 };
 
@@ -1676,31 +1756,33 @@ const transformCategorySubSections = (document) => {
       div.before(div.firstElementChild);
     }
 
-    // fix c2a buttons in lists
-    div.querySelectorAll('a.btn').forEach((link) => {
-      const liWrapper = link.closest('li');
-      if (liWrapper) {
-        const ulWrapper = liWrapper.parentElement;
-        if (link.parentElement.nodeName.match('STRONG|EM')) {
-          ulWrapper.after(link.parentElement);
-        } else {
-          ulWrapper.after(link);
+    if (div.childElementCount > 1) {
+      // fix c2a buttons in lists
+      div.querySelectorAll('a.btn').forEach((link) => {
+        const liWrapper = link.closest('li');
+        if (liWrapper) {
+          const ulWrapper = liWrapper.parentElement;
+          if (link.parentElement.nodeName.match('STRONG|EM')) {
+            ulWrapper.after(link.parentElement);
+          } else {
+            ulWrapper.after(link);
+          }
         }
-      }
-    });
-    div.querySelectorAll('li').forEach((li) => {
-      if (li.textContent.trim().length === 0) {
-        li.remove();
-      }
-    });
+      });
+      div.querySelectorAll('li').forEach((li) => {
+        if (li.textContent.trim().length === 0) {
+          li.remove();
+        }
+      });
 
-    // map columns
-    const cells = [['Columns']];
-    const children = [...div.children];
+      // map columns
+      const cells = [['Columns']];
+      const children = [...div.children];
 
-    cells.push(children);
-    const table = WebImporter.DOMUtils.createTable(cells, document);
-    div.replaceWith(table);
+      cells.push(children);
+      const table = WebImporter.DOMUtils.createTable(cells, document);
+      div.replaceWith(table);
+    }
   });
 };
 
@@ -1928,9 +2010,11 @@ export default {
       '.sticky-social-list',
       '.back-labnote',
       '.recent-posts .overview-page',
+      '.blogContentBox .image_modal.modal',
       '.visually-hidden.focusable.skip-link',
       '.ins-nav-container',
       '.OneLinkShow_zh',
+      '.pro-comparison-result',
       '.onetrust-consent-sdk',
       '.drift-frame-chat',
       '.drift-frame-controller',
@@ -1958,7 +2042,6 @@ export default {
       transformHero,
       transformTables,
       transformButtons,
-      transformHashLinks,
       transformCitations,
       transformEventDetails,
       transformImageGallery,
@@ -1968,6 +2051,7 @@ export default {
       transformQuotes,
       transformAccordions,
       transformImageList,
+      transformBlogToc,
       transformBlogRecentPostsCarousel,
       transformImageCaption,
       transformListCaption,
@@ -1995,6 +2079,7 @@ export default {
       transformLandingPageRegistration,
       transformLandingPageSamplePagesColumns,
       transformColumns,
+      transformHashLinks,
       transformImageLinks,
     ].forEach((f) => f.call(null, document));
 
