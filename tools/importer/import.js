@@ -37,6 +37,8 @@ const META_SHEET_MAPPING = [
   { url: '/lab-notes', sheet: 'blog' },
 ];
 
+const EXPORT_URL = 'https://main--moleculardevices--hlxsites.hlx.page/export/moldev-resources-sheet-06232023.json';
+
 const isProduct = (document) => document.type === 'Products' && document.querySelector('body').classList.contains('page-node-type-products');
 const isAssayKit = (document) => document.productType && (document.productType === 'Assay Kits' || document.productType === 'Labware');
 const isApplication = (document) => document.type && document.type === 'Application';
@@ -71,11 +73,7 @@ const loadResourceMetaAttributes = (url, params, document, meta) => {
   if (metaSheet) {
     sheet = metaSheet.sheet;
   }
-  request.open(
-    'GET',
-    `https://main--moleculardevices--hlxsites.hlx.page/export/moldev-resources-sheet-06232023.json?limit=10000&sheet=${sheet}`,
-    false,
-  );
+  request.open('GET', `${EXPORT_URL}?limit=10000&sheet=${sheet}`, false);
   request.overrideMimeType('text/json; UTF-8');
   request.send(null);
   if (request.status === 200) {
@@ -574,7 +572,7 @@ const transformHero = (document) => {
 
 // we have different usages of sections - with <section></section>, <div></div>
 const transformSections = (document) => {
-  document.querySelectorAll('section * section:not(.blogsPage), .category-page-section').forEach((section, index) => {
+  document.querySelectorAll('section * section:not(.blogsPage), .category-page-section').forEach((section) => {
     // if (index > 0) {
     // section.firstChild.before(document.createElement('hr'));
     // }
@@ -1145,6 +1143,35 @@ const transformImageLinks = (document) => {
   });
 };
 
+const transformRequestQuoteLinks = (document) => {
+  const request = new XMLHttpRequest();
+  request.open('GET', `${EXPORT_URL}?limit=10000&sheet=products`, false);
+  request.overrideMimeType('text/json; UTF-8');
+  request.send(null);
+  let resourceMetadata = null;
+  if (request.status === 200) {
+    resourceMetadata = JSON.parse(request.responseText).data;
+  }
+
+  document.querySelectorAll('a').forEach((link) => {
+    if (link.href && link.href.indexOf('/quote-request') > -1) {
+      const parameters = new URLSearchParams(link.href.substring(link.href.indexOf('?') + 1));
+      if (parameters && parameters.has('pid') && resourceMetadata) {
+        const pid = parameters.get('pid');
+        const resource = resourceMetadata.find((n) => n.pid === pid);
+
+        if (resource) {
+          const familyid = resource['family id'];
+          if (familyid) {
+            parameters.set('pid', familyid);
+            link.href = `/quote-request?${parameters.toString()}`;
+          }
+        }
+      }
+    }
+  });
+};
+
 const transformHashLinks = (document) => {
   document.querySelectorAll('[href*="#"]').forEach((link) => {
     if (link.href && link.href.indexOf('about:blank#') > -1) {
@@ -1209,23 +1236,24 @@ const transformBlogToc = (document) => {
   }
 };
 
-
 const transformBlogRecentPostsCarousel = (document) => {
   document.querySelectorAll('.recent-posts').forEach((recentPostsContainer) => {
-    recentPostsContainer.before(document.createElement('hr'));
-    const viewAll = document.createElement('a');
-    viewAll.href = '/lab-notes/blog';
-    viewAll.textContent = ':view-all-posts:';
+    if (recentPostsContainer.querySelector('.recent-post-blog-carousal')) {
+      recentPostsContainer.before(document.createElement('hr'));
+      const viewAll = document.createElement('a');
+      viewAll.href = '/lab-notes/blog';
+      viewAll.textContent = ':view-all-posts:';
 
-    const carousel = recentPostsContainer.querySelector('.views-element-container');
-    carousel.before(viewAll);
-    const cells = [['Recent Blogs Carousel']];
-    const table = WebImporter.DOMUtils.createTable(cells, document);
-    carousel.replaceWith(table);
+      const carousel = recentPostsContainer.querySelector('.views-element-container');
+      carousel.before(viewAll);
+      const cells = [['Recent Blogs Carousel']];
+      const table = WebImporter.DOMUtils.createTable(cells, document);
+      carousel.replaceWith(table);
 
-    const metaCells = [['Section Metadata'], [['style'], ['Blog Heading']]];
-    const metaTable = WebImporter.DOMUtils.createTable(metaCells, document);
-    recentPostsContainer.append(metaTable);
+      const metaCells = [['Section Metadata'], [['style'], ['Blog Heading']]];
+      const metaTable = WebImporter.DOMUtils.createTable(metaCells, document);
+      recentPostsContainer.append(metaTable);
+    }
   });
 };
 
@@ -2000,6 +2028,7 @@ export default {
       'style',
       'header',
       'footer',
+      'noscript',
       'nav#block-mobilenavigation',
       'body > div#mediaGallary', // remove the hero media gallery only
       '.blog-details .hero-desc ul', // blog author & date which we read from meta data
@@ -2082,6 +2111,7 @@ export default {
       transformColumns,
       transformHashLinks,
       transformImageLinks,
+      transformRequestQuoteLinks,
     ].forEach((f) => f.call(null, document));
 
     makeAbsoluteLinks(document, url);
