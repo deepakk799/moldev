@@ -34,6 +34,7 @@ const META_SHEET_MAPPING = [
   { url: '/events/', sheet: 'events' },
   { url: '/resources/citations/', sheet: 'citations' },
   { url: '/technology', sheet: 'technologies' },
+  { url: '/lab-notes', sheet: 'blog' },
 ];
 
 const isProduct = (document) => document.type === 'Products' && document.querySelector('body').classList.contains('page-node-type-products');
@@ -72,7 +73,7 @@ const loadResourceMetaAttributes = (url, params, document, meta) => {
   }
   request.open(
     'GET',
-    `https://main--moleculardevices--hlxsites.hlx.page/export/moldev-resources-sheet-05152023.json?limit=10000&sheet=${sheet}`,
+    `https://main--moleculardevices--hlxsites.hlx.page/export/moldev-resources-sheet-06232023.json?limit=10000&sheet=${sheet}`,
     false,
   );
   request.overrideMimeType('text/json; UTF-8');
@@ -81,156 +82,156 @@ const loadResourceMetaAttributes = (url, params, document, meta) => {
     resourceMetadata = JSON.parse(request.responseText).data;
   }
 
-  const resource = resourceMetadata.find((n) => n.URL === params.originalURL);
+  const resource = resourceMetadata.find((n) => n.url === params.originalURL);
   if (resource) {
-    if (resource['Asset Type']) {
-      document.type = resource['Asset Type'];
+    if (resource['asset type']) {
+      document.type = resource['asset type'];
       if (document.type === 'Category') {
         meta.Template = 'Category';
       }
     }
     if (!meta.Title) {
-      meta.Title = resource.Title;
+      meta.Title = resource.title;
     }
-    if (resource['Tagged to Products']) {
-      meta['Related Products'] = resource['Tagged to Products'];
+    if (resource['tagged to products']) {
+      meta['Related Products'] = resource['tagged to products'];
     }
     if (resource['Tagged to Technology']) {
-      meta['Related Technologies'] = resource['Tagged to Technology'];
+      meta['Related Technologies'] = resource['tagged to technology'];
     }
-    if (resource['Tagged to Applications']) {
-      meta['Related Applications'] = resource['Tagged to Applications'];
+    if (resource['tagged to applications']) {
+      meta['Related Applications'] = resource['tagged to applications'];
     }
-    if (resource['Tagged Topics']) {
-      meta['Related Topics'] = resource['Tagged Topics'];
+    if (resource['tagged topics']) {
+      meta['Related Topics'] = resource['tagged topics'];
     }
-    if (resource['Gated/Ungated'] === 'Yes') {
+    if (resource['gated/ungated'] === 'Yes') {
       meta.Gated = 'Yes';
-      const gatedUrl = resource['Gated URL'];
+      const gatedUrl = resource['gated url'];
       meta['Gated URL'] = gatedUrl.startsWith('http') ? gatedUrl : `https://www.moleculardevices.com${gatedUrl}`;
     }
-    if (resource.Publisher) {
-      meta.Publisher = resource.Publisher;
+    if (resource.publisher) {
+      meta.Publisher = resource.publisher;
     }
-    if (resource['Resource Author']) {
-      meta.Author = resource['Resource Author'];
+    if (resource['resource author']) {
+      meta.Author = resource['resource author'];
     }
-    if (resource['Card CTA']) {
-      meta['Card C2A'] = resource['Card CTA'];
+    if (resource['card cta']) {
+      meta['Card C2A'] = resource['card cta'];
     }
-    if (resource['SHORT DESCRIPTION']) {
+    if (resource['short description']) {
       if (meta.Description) {
-        meta['Card Description'] = resource['SHORT DESCRIPTION'];
+        meta['Card Description'] = resource['short description'];
       } else {
-        meta.Description = resource['SHORT DESCRIPTION'];
+        meta.Description = resource['short description'];
       }
     }
-    if (resource.SUMMARY) {
+    if (resource.summary) {
       if (meta.Description) {
-        meta['Card Description'] = resource.SUMMARY;
+        meta['Card Description'] = resource.summary;
       } else {
-        meta.Description = resource.SUMMARY;
+        meta.Description = resource.summary;
       }
     }
-    if (resource['COVEO TITLE']) {
-      meta['Search Title'] = resource['COVEO TITLE'];
+    if (resource['coveo title']) {
+      meta['Search Title'] = resource['coveo title'];
     }
-    if (resource['Product Category']) {
-      meta.Category = resource['Product Category'];
+    if (resource['product category']) {
+      meta.Category = resource['product category'];
     }
-    if (resource.Category) {
-      meta.Category = resource.Category;
+    if (resource.category) {
+      meta.Category = resource.category;
     }
-    if (resource['Sub Category'] && resource['Sub Category'] !== resource.Category) {
-      meta['Sub Category'] = resource['Sub Category'];
+    if (resource['sub category'] && resource['sub category'] !== resource.category) {
+      meta['Sub Category'] = resource['sub category'];
     }
-    if (resource['Product Related Categories']) {
-      meta['Related Categories'] = resource['Product Related Categories'];
+    if (resource['product related categories']) {
+      meta['Related Categories'] = resource['product related categories'];
     }
-    if (resource['PRODUCT FAMILY']) {
-      meta['Product Family'] = resource['PRODUCT FAMILY'];
+    if (resource['product family']) {
+      meta['Product Family'] = resource['product family'];
     }
-    if (resource['LINE OF BUSINESS']) {
-      meta['Line of Business'] = resource['LINE OF BUSINESS'];
+    if (resource['line of business']) {
+      meta['Line of Business'] = resource['line of business'];
     }
-    if (resource['Family ID']) {
-      meta['Family ID'] = resource['Family ID'];
-      document.pid = resource['Family ID'];
+    if (resource['family id']) {
+      meta['Family ID'] = resource['family id'];
+      document.pid = resource['family id'];
     }
-    if (resource.Source) {
-      meta.Source = resource.Source;
+    if (resource.source) {
+      meta.Source = resource.source;
     }
-    if (resource.Country) {
-      meta.Country = resource.Country;
+    if (resource.country) {
+      meta.Country = resource.country;
     }
-    if (resource.Language) {
-      meta.Language = resource.Language;
+    if (resource.language) {
+      meta.Language = resource.language;
     }
-    if (resource.Locale) {
-      meta.Locale = resource.Locale;
+    if (resource.locale) {
+      meta.Locale = resource.locale;
     }
 
     if (params.originalURL.indexOf('/resources/citations/') > 0) {
-      if (resource['Citation Number']) {
-        meta['Citation Number'] = resource['Citation Number'];
+      if (resource['citation number']) {
+        meta['Citation Number'] = resource['citation number'];
       }
     }
 
     if (params.originalURL.indexOf('/events/') > 0) {
-      if (resource['Event Type']) {
-        meta['Event Type'] = resource['Event Type'];
+      if (resource['event type']) {
+        meta['Event Type'] = resource['event type'];
       }
-      if (resource.Region) {
-        meta['Event Region'] = resource.Region;
+      if (resource.region) {
+        meta['Event Region'] = resource.region;
       }
-      if (resource['Event Address']) {
-        meta['Event Address'] = resource['Event Address'];
+      if (resource['event address']) {
+        meta['Event Address'] = resource['event address'];
       }
-      const startDate = new Date(resource['START DATE']);
+      const startDate = new Date(resource['start date']);
       if (startDate) {
         meta['Event Start'] = formatDate(startDate, true);
       }
-      const endDate = new Date(resource['END DATE']);
+      const endDate = new Date(resource['end date']);
       if (endDate) {
         meta['Event End'] = formatDate(endDate, true);
       }
     }
 
     if (isProduct(document)) {
-      if (resource['PRODUCT TYPE']) {
-        meta['Product Type'] = resource['PRODUCT TYPE'];
-        document.productType = resource['PRODUCT TYPE'];
+      if (resource['product type']) {
+        meta['Product Type'] = resource['product type'];
+        document.productType = resource['product type'];
       }
-      if (resource.Title) {
-        meta.Identifier = resource.Title;
+      if (resource.title) {
+        meta.Identifier = resource.title;
       }
-      if (resource['SHOPIFY HANDLES']) {
-        document.shopfiyHandler = resource['SHOPIFY HANDLES'];
+      if (resource['shopify handles']) {
+        document.shopfiyHandler = resource['shopify handles'];
       }
-      if (resource['PRODUCT ASSAY KITS']) {
-        meta['Product Assay Kits'] = resource['PRODUCT ASSAY KITS'];
+      if (resource['product assay kits']) {
+        meta['Product Assay Kits'] = resource['product assay kits'];
       }
-      if (resource['IS SERIES MAIN PRODUCT'] && resource['IS SERIES MAIN PRODUCT'].toLowerCase() === 'yes') {
-        meta['Series Main Product'] = resource['IS SERIES MAIN PRODUCT'];
+      if (resource['is series main product'] && resource['is series main product'].toLowerCase() === 'yes') {
+        meta['Series Main Product'] = resource['is series main product'];
       }
-      if (resource['SERIES PRODUCT']) {
-        meta['Series Product'] = resource['SERIES PRODUCT'];
+      if (resource['series product']) {
+        meta['Series Product'] = resource['series product'];
       }
-      if (resource['SHOW IN PRODUCT FINDER'] && resource['SHOW IN PRODUCT FINDER'].toLowerCase() === 'yes') {
-        meta['Show in Product Finder'] = resource['SHOW IN PRODUCT FINDER'];
+      if (resource['show in product finder'] && resource['show in product finder'].toLowerCase() === 'yes') {
+        meta['Show in Product Finder'] = resource['show in product finder'];
       }
-      if (resource['PRODUCT WEIGHT']) {
-        meta['Product Weight'] = resource['PRODUCT WEIGHT'];
+      if (resource['product weight']) {
+        meta['Product Weight'] = resource['product weight'];
       }
-      if (resource['PRODUCT LANDING PAGE ORDER']) {
-        const order = parseInt(resource['PRODUCT LANDING PAGE ORDER'], 10);
+      if (resource['product landing page order']) {
+        const order = parseInt(resource['product landing page order'], 10);
         meta['Landing Page Order'] = order + 1;
       }
-      if (resource['BUNDLE PRODUCTS']) {
-        meta['Bundle Products'] = resource['BUNDLE PRODUCTS'];
+      if (resource['bundle products']) {
+        meta['Bundle Products'] = resource['bundle products'];
       }
-      if (resource['PRODUCT READ MODE TYPES']) {
-        meta['Read Mode Types'] = resource['PRODUCT READ MODE TYPES'];
+      if (resource['product read mode types']) {
+        meta['Read Mode Types'] = resource['product read mode types'];
       }
 
       // get the spec sheet and link it
@@ -245,33 +246,33 @@ const loadResourceMetaAttributes = (url, params, document, meta) => {
       }
     }
 
-    if (isApplication(document)) {
-      if (resource['APPLICATION TYPE']) {
-        meta['Application Type'] = resource['APPLICATION TYPE'];
+    if (isApplication(document) || isTechnology(document)) {
+      if (resource.title) {
+        meta.Identifier = resource.title;
       }
-      if (resource['SHOW IN RESOURCES']) {
-        meta['Resource Category'] = resource['SHOW IN RESOURCES'];
+      if (resource['application type']) {
+        meta['Application Type'] = resource['application type'];
       }
-      if (resource['SET ON CATEGORY']) {
-        meta['Set On Category'] = resource['SET ON CATEGORY'];
+      if (resource['show in resources']) {
+        meta['Resource Category'] = resource['show in resources'];
       }
-      if (resource['Parent Application']) {
-        meta['Parent Application'] = resource['Parent Application'];
+      if (resource['set on category']) {
+        meta['Set On Category'] = resource['set on category'];
+      }
+      if (resource['parent application']) {
+        meta['Parent Application'] = resource['parent application'];
+      }
+      if (resource['technology type']) {
+        meta['Technology Type'] = resource['technology type'];
+      }
+      if (resource['tagged topics']) {
+        meta['Set On Category'] = resource['tagged topics'];
       }
     }
 
-    if (isTechnology(document)) {
-      if (resource['TECHNOLOGY TYPE']) {
-        meta['Technology Type'] = resource['TECHNOLOGY TYPE'];
-      }
-      if (resource['Tagged Topics']) {
-        meta['Set On Category'] = resource['Tagged Topics'];
-      }
-    }
-
-    if (resource.Thumbnail) {
+    if (resource.thumbnail) {
       const el = document.createElement('img');
-      el.src = makeUrlRelative(resource.Thumbnail);
+      el.src = makeUrlRelative(resource.thumbnail);
       if (params.originalURL.indexOf('/events/') > 0) {
         if (!meta.Image) {
           meta.Image = el;
@@ -281,8 +282,8 @@ const loadResourceMetaAttributes = (url, params, document, meta) => {
       }
     }
 
-    if (resource['Created On']) {
-      const publishDate = new Date(resource['Created On']);
+    if (resource['created on']) {
+      const publishDate = new Date(resource['created on']);
       if (publishDate) {
         meta['Publication Date'] = formatDate(publishDate);
       }
