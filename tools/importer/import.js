@@ -1145,12 +1145,14 @@ const transformImageLinks = (document) => {
 
 const transformRequestQuoteLinks = (document) => {
   const request = new XMLHttpRequest();
-  request.open('GET', `${EXPORT_URL}?limit=10000&sheet=products`, false);
+  request.open('GET', `${EXPORT_URL}?limit=10000&sheet=products&sheet=applications&sheet=technologies`, false);
   request.overrideMimeType('text/json; UTF-8');
   request.send(null);
   let resourceMetadata = null;
   if (request.status === 200) {
-    resourceMetadata = JSON.parse(request.responseText).data;
+    const responseData = JSON.parse(request.responseText);
+    // eslint-disable-next-line max-len
+    resourceMetadata = responseData.products.data.concat(responseData.applications.data).concat(responseData.technologies.data);
   }
 
   document.querySelectorAll('a').forEach((link) => {
