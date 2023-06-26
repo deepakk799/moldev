@@ -34,6 +34,7 @@ export default async function decorate(block) {
     .all();
 
   if (resources.length < 2) {
+    block.closest('.section').remove();
     return;
   }
 
@@ -85,6 +86,5 @@ export default async function decorate(block) {
     ),
   );
   decorateButtons(viewAllBtn);
-  block.parentElement.prepend(h2('Latest Resources'));
   block.parentElement.parentElement.append(viewAllBtn);
 }
