@@ -3,7 +3,7 @@ import { decorateButtons, getMetadata } from '../../scripts/lib-franklin.js';
 import { createCarousel } from '../carousel/carousel.js';
 import { createCard } from '../card/card.js';
 import {
-  div, p, strong, a,
+  div, p, strong, a, h2,
 } from '../../scripts/dom-helpers.js';
 import resourceMapping from '../resources/resource-mapping.js';
 
@@ -32,6 +32,10 @@ export default async function decorate(block) {
       && includedResourceTypes.includes(resource.type))
     .limit(9)
     .all();
+
+  if (resources.length < 2) {
+    return;
+  }
 
   const resourceCard = await createCard({
     defaultButtonText: 'Learn more',
@@ -81,5 +85,6 @@ export default async function decorate(block) {
     ),
   );
   decorateButtons(viewAllBtn);
+  block.parentElement.prepend(h2('Latest Resources'));
   block.parentElement.parentElement.append(viewAllBtn);
 }
