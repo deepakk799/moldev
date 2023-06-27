@@ -49,6 +49,10 @@ async function loadBreadcrumbs(breadcrumbsContainer) {
   breadCrumbsModule.default(breadcrumbsContainer);
 }
 
+export function buildPurchaseForm() {
+
+}
+
 export function buildHero(block) {
   const inner = document.createElement('div');
   inner.classList.add('hero-inner');
@@ -119,6 +123,14 @@ export function buildHero(block) {
   inner.appendChild(breadcrumbs);
   inner.appendChild(container);
 
+  // lets check if this is a product page
+  const hasPurchaseForm = block.classList.contains('purchase-form');
+  // if contains
+  if (hasPurchaseForm) {
+    // const purchaseForm = createPurchaseForm();
+    // append purchase form div
+  }
+
   if (block.classList.contains('blog')) {
     addMetadata(container);
     addBlockSticker(breadcrumbs);
@@ -126,6 +138,11 @@ export function buildHero(block) {
   }
 
   loadBreadcrumbs(breadcrumbs);
+}
+
+function createPurchaseForm() {
+  // fetch products index sheet
+  // check H1 for this specific title
 }
 
 export default async function decorate(block) {
