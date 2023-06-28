@@ -37,6 +37,10 @@ const META_SHEET_MAPPING = [
   { url: '/lab-notes', sheet: 'blog' },
 ];
 
+const COUNTRY_MAPPING = [
+  { country: 'China', locale: 'ZH' }
+];
+
 const EXPORT_URL = 'https://main--moleculardevices--hlxsites.hlx.page/export/moldev-resources-sheet-06232023.json';
 
 const isProduct = (document) => document.type === 'Products' && document.querySelector('body').classList.contains('page-node-type-products');
@@ -161,6 +165,8 @@ const loadResourceMetaAttributes = (url, params, document, meta) => {
     }
     if (resource.country) {
       meta.Country = resource.country;
+      const locale = COUNTRY_MAPPING.find((m) => resource.country === m.country);
+      if (locale) meta.Locale = locale.locale;
     }
     if (resource.language) {
       meta.Language = resource.language;
@@ -1123,12 +1129,14 @@ const transformImageCaption = (document) => {
     captionWrapper.innerHTML = caption.innerHTML;
     caption.replaceWith(captionWrapper);
 
-    const previousNodeName = captionWrapper.previousElementSibling.nodeName;
-    if (previousNodeName === 'BR' || previousNodeName === 'A') {
-      if (previousNodeName === 'BR') captionWrapper.previousElementSibling.remove();
-      const paragraphWrapper = document.createElement('p');
-      paragraphWrapper.innerHTML = captionWrapper.outerHTML;
-      captionWrapper.replaceWith(paragraphWrapper);
+    if (captionWrapper.previousElementSibling) {
+      const previousNodeName = captionWrapper.previousElementSibling.nodeName;
+      if (previousNodeName === 'BR' || previousNodeName === 'A') {
+        if (previousNodeName === 'BR') captionWrapper.previousElementSibling.remove();
+        const paragraphWrapper = document.createElement('p');
+        paragraphWrapper.innerHTML = captionWrapper.outerHTML;
+        captionWrapper.replaceWith(paragraphWrapper);
+      }
     }
   });
 };
@@ -1491,7 +1499,11 @@ const transformCitations = (document) => {
 };
 
 const transformEventDetails = (document) => {
-  if (document.querySelector('body.page-node-type-events')) {
+  const container = document.querySelector('.event-block + div');
+  if (container) {
+  // if (document.querySelector('body.page-node-type-events')) {
+    container.classList.remove('row');
+    container.closest('.row').classList.remove('row');
     document.querySelectorAll('.event-block').forEach((div) => div.remove());
 
     const relatedProducts = document.querySelector('.pro_car_wrap');
