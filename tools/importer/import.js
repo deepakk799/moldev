@@ -35,13 +35,14 @@ const META_SHEET_MAPPING = [
   { url: '/resources/citations/', sheet: 'citations' },
   { url: '/technology', sheet: 'technologies' },
   { url: '/lab-notes', sheet: 'blog' },
+  { url: '/en/assets/customer-breakthrough', sheet: 'customer-breakthrough' },
 ];
 
 const COUNTRY_MAPPING = [
-  { country: 'China', locale: 'ZH' }
+  { country: 'China', locale: 'ZH' },
 ];
 
-const EXPORT_URL = 'https://main--moleculardevices--hlxsites.hlx.page/export/moldev-resources-sheet-06232023.json';
+const EXPORT_URL = 'https://main--moleculardevices--hlxsites.hlx.page/export/moldev-resources-sheet-06292023-final.json';
 
 const isProduct = (document) => document.type === 'Products' && document.querySelector('body').classList.contains('page-node-type-products');
 const isAssayKit = (document) => document.productType && (document.productType === 'Assay Kits' || document.productType === 'Labware');
@@ -540,7 +541,7 @@ const transformHero = (document) => {
       // add second column for customer success story
       const customerStoryHeader = hero.parentElement.querySelector('.customer-story-section');
       if (customerStoryHeader) {
-        customerStoryHeader.querySelectorAll('.customer-info > label').forEach((label) => {
+        customerStoryHeader.querySelectorAll('.customer-info label').forEach((label) => {
           const h6 = document.createElement('h6');
           h6.innerHTML = label.innerHTML;
           label.replaceWith(h6);
@@ -972,11 +973,12 @@ const transformColumns = (document) => {
     const row = firstCol.closest('.row:not(#col)');
 
     if (firstCol.closest('section.franklin-horizontal')) {
-      firstCol.before(document.createElement('hr'));
-      const metaCells = [['Section Metadata'], [['style'], ['Columns 2']]];
-      const metaTable = WebImporter.DOMUtils.createTable(metaCells, document);
-      const lastCol = colToRemove[colToRemove.length - 1];
-      lastCol.after(metaTable);
+      // firstCol.before(document.createElement('hr'));
+      // const metaCells = [['Section Metadata'], [['style'], ['Columns 2']]];
+      // const metaTable = WebImporter.DOMUtils.createTable(metaCells, document);
+      // const lastCol = colToRemove[colToRemove.length - 1];
+      // lastCol.after(metaTable);
+      row.classList.remove('row');
     } else {
       const cells = [['Columns']];
       const blockOptions = [];
@@ -1065,6 +1067,8 @@ const transformReferenceToColumns = (document) => {
 const transformReferenceProducts = (document) => {
   document.querySelectorAll('.featured-applications-div').forEach((featuredProductsBlock) => {
     if (featuredProductsBlock.querySelector('.product-container')) {
+      const parentRow = featuredProductsBlock.closest('.row');
+      if (parentRow) parentRow.classList.remove('row');
       const parentSection = featuredProductsBlock.closest('section');
       parentSection.classList.add('franklin-horizontal');
       const featuredProducts = featuredProductsBlock.querySelector('.view-customer-story-product');
@@ -1153,7 +1157,7 @@ const transformImageLinks = (document) => {
 
 const transformRequestQuoteLinks = (document) => {
   const request = new XMLHttpRequest();
-  request.open('GET', `${EXPORT_URL}?limit=10000&sheet=products&sheet=applications&sheet=technologies`, false);
+  request.open('GET', `${EXPORT_URL}?limit=10000&sheet=products&sheet=applications&sheet=technologies&sheet=customer-breakthrough`, false);
   request.overrideMimeType('text/json; UTF-8');
   request.send(null);
   let resourceMetadata = null;
@@ -1166,7 +1170,7 @@ const transformRequestQuoteLinks = (document) => {
   document.querySelectorAll('a').forEach((link) => {
     if (link.href && link.href.indexOf('/quote-request') > -1) {
       const parameters = new URLSearchParams(link.href.substring(link.href.indexOf('?') + 1));
-      if (parameters && parameters.has('pid') && resourceMetadata) {
+      if (parameters && parameters.has('pid') && Number.isInteger(Number(parameters.get('pid'))) && resourceMetadata) {
         const pid = parameters.get('pid');
         const resource = resourceMetadata.find((n) => n.pid === pid);
 
@@ -1175,6 +1179,22 @@ const transformRequestQuoteLinks = (document) => {
           if (familyid) {
             parameters.set('pid', familyid);
             link.href = `/quote-request?${parameters.toString()}`;
+          }
+        }
+      }
+    if (parameters && parameters.has('customer_breakthrough_id') && Number.isInteger(Number(parameters.get('customer_breakthrough_id'))) && resourceMetadata) {
+        const pid = parameters.get('customer_breakthrough_id');
+        if (parameters.has('pid') && Number.isNaN(Number(parameters.get('pid')))) {
+          parameters.delete('customer_breakthrough_id');
+          link.href = `/quote-request?${parameters.toString()}`;
+        } else {
+          const resource = resourceMetadata.find((n) => n.pid === pid);
+          if (resource) {
+            const familyid = resource['family id'];
+            if (familyid) {
+              parameters.set('pid', familyid);
+              link.href = `/quote-request?${parameters.toString()}`;
+            }
           }
         }
       }
