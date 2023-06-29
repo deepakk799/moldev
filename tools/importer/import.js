@@ -211,7 +211,7 @@ const loadResourceMetaAttributes = (url, params, document, meta) => {
         meta.Identifier = resource.title;
       }
       if (resource['shopify handles']) {
-        document.shopfiyHandler = resource['shopify handles'];
+        document.shopfiyHandle = resource['shopify handles'];
       }
       if (resource['product assay kits']) {
         meta['Product Assay Kits'] = resource['product assay kits'];
@@ -1647,9 +1647,20 @@ const transformProductOrderOptions = (document) => {
   const div = document.querySelector('div.ordering_wrap');
   if (div && div.textContent.trim().length > 0) {
     const cells = [['Ordering Options']];
-    if (document.shopfiyHandler) {
-      cells.push([document.shopfiyHandler]);
+    if (document.shopfiyHandle) {
+      cells.push([['shopify-handles'], [document.shopfiyHandle]]);
     }
+
+    // collect description for all order options
+    div.querySelectorAll('.ordering_options .row .OneLinkHide a.add_to_cart').forEach((cartLink) => {
+      const variantId = cartLink.getAttribute('data-variant-id');
+      const optionRow = cartLink.closest('.row');
+      const specs = optionRow.querySelector('.ordering-title .specs');
+      if (specs && specs.textContent && specs.textContent.trim().length > -1) {
+        cells.push([[variantId], [specs]]);
+      }
+    });
+
     const table = WebImporter.DOMUtils.createTable(cells, document);
     div.replaceWith(table);
   }
@@ -2068,7 +2079,6 @@ export default {
       '.blog-details .hero-desc ul', // blog author & date which we read from meta data
       '.breadcrumb',
       '.skip-link',
-      '.cart-store',
       '.procompare',
       '.share-event',
       '.sticky-social-list',
