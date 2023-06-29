@@ -946,6 +946,12 @@ const transformColumns = (document) => {
     },
   ];
 
+  document.querySelectorAll('.row').forEach((div) => {
+    if (div.textContent && div.textContent.trim().length === 0) {
+      div.remove();
+    }
+  });
+
   document.querySelectorAll('.row .swap, .row .not-swap').forEach((div) => {
     const row = div.parentElement;
     row.classList.add(div.className);
@@ -972,12 +978,12 @@ const transformColumns = (document) => {
     const firstCol = colToRemove[0];
     const row = firstCol.closest('.row:not(#col)');
 
-    if (firstCol.closest('section.franklin-horizontal')) {
-      // firstCol.before(document.createElement('hr'));
-      // const metaCells = [['Section Metadata'], [['style'], ['Columns 2']]];
-      // const metaTable = WebImporter.DOMUtils.createTable(metaCells, document);
-      // const lastCol = colToRemove[colToRemove.length - 1];
-      // lastCol.after(metaTable);
+    if (firstCol.closest('section.franklin-horizontal') || row.querySelector('table')) {
+      firstCol.before(document.createElement('hr'));
+      const metaCells = [['Section Metadata'], [['style'], ['Columns 2']]];
+      const metaTable = WebImporter.DOMUtils.createTable(metaCells, document);
+      const lastCol = colToRemove[colToRemove.length - 1];
+      lastCol.after(metaTable);
       row.classList.remove('row');
     } else {
       const cells = [['Columns']];
