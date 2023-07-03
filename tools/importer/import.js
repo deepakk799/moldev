@@ -28,12 +28,12 @@ const TABS_MAPPING = [
 
 const META_SHEET_MAPPING = [
   { url: '/newsroom/in-the-news/', sheet: 'publications' },
-  { url: '/products/', sheet: 'products' },
+  { url: '/products/', sheet: 'products-diff' },
   { url: '/service-support/', sheet: 'products' },
-  { url: '/applications/', sheet: 'applications' },
+  { url: '/applications/', sheet: 'applications-diff' },
   { url: '/events/', sheet: 'events' },
   { url: '/resources/citations/', sheet: 'citations' },
-  { url: '/technology', sheet: 'technologies' },
+  { url: '/technology', sheet: 'technologies-diff' },
   { url: '/lab-notes', sheet: 'blog' },
   { url: '/en/assets/customer-breakthrough', sheet: 'customer-breakthrough' },
 ];
@@ -42,7 +42,7 @@ const COUNTRY_MAPPING = [
   { country: 'China', locale: 'ZH' },
 ];
 
-const EXPORT_URL = 'https://main--moleculardevices--hlxsites.hlx.page/export/moldev-resources-sheet-06292023-final.json';
+const EXPORT_URL = 'https://main--moleculardevices--hlxsites.hlx.page/export/moldev-resources-sheet-06292023-finaldiff.json';
 
 const isProduct = (document) => document.type === 'Products' && document.querySelector('body').classList.contains('page-node-type-products');
 const isAssayKit = (document) => document.productType && (document.productType === 'Assay Kits' || document.productType === 'Labware');
@@ -259,7 +259,7 @@ const loadResourceMetaAttributes = (url, params, document, meta) => {
         meta['Application Type'] = resource['application type'];
       }
       if (resource['show in resources']) {
-        meta['Resource Category'] = resource['show in resources'];
+        meta['Show in Resources'] = resource['show in resources'];
       }
       if (resource['set on category']) {
         meta['Set On Category'] = resource['set on category'];
@@ -271,7 +271,7 @@ const loadResourceMetaAttributes = (url, params, document, meta) => {
         meta['Technology Type'] = resource['technology type'];
       }
       if (resource['tagged topics']) {
-        meta['Set On Category'] = resource['tagged topics'];
+        meta['Tagged Topics'] = resource['tagged topics'];
       }
     }
 

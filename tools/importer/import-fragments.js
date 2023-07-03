@@ -12,6 +12,8 @@
 /* global WebImporter */
 /* eslint-disable no-console, class-methods-use-this */
 
+const EXPORT_URL = 'https://main--moleculardevices--hlxsites.hlx.page/export/moldev-resources-sheet-06292023-finaldiff.json';
+
 /**
  * Special handling for resource document meta data.
  */
@@ -30,43 +32,41 @@ const loadResourceMetaAttributes = (url, params, document, meta) => {
   if (params.originalURL.indexOf('/resources/citations/') > 0) {
     sheet = 'citations';
   }
-  request.open(
-    'GET',
-    `http://localhost:3001/export/moldev-resources-sheet-041720223.json?host=https%3A%2F%2Fmain--moleculardevices--hlxsites.hlx.page&limit=10000&sheet=${sheet}`,
-    false,
-  );
+
+  request.open('GET', `${EXPORT_URL}?limit=10000&sheet=${sheet}`, false);
+
   request.overrideMimeType('text/json; UTF-8');
   request.send(null);
   if (request.status === 200) {
     resourceMetadata = JSON.parse(request.responseText).data;
   }
 
-  const resource = resourceMetadata.find((n) => n.URL === params.originalURL);
+  const resource = resourceMetadata.find((n) => n.url === params.originalURL);
   if (resource) {
     // meta.Type = resource['Asset Type'];
-    if (resource['Tagged to Products']) {
-      meta['Related Products'] = resource['Tagged to Products'];
+    if (resource['tagged to products']) {
+      meta['Related Products'] = resource['tagged to products'];
     }
-    if (resource['Tagged to Technology']) {
-      meta['Related Technologies'] = resource['Tagged to Technology'];
+    if (resource['tagged to technology']) {
+      meta['Related Technologies'] = resource['tagged to technology'];
     }
-    if (resource['Tagged to Applications']) {
-      meta['Related Applications'] = resource['Tagged to Applications'];
+    if (resource['tagged to applications']) {
+      meta['Related Applications'] = resource['tagged to applications'];
     }
-    if (resource['Gated/Ungated'] === 'Yes') {
+    if (resource['gated/ungated'] === 'Yes') {
       meta.Gated = 'Yes';
-      const gatedUrl = resource['Gated URL'];
+      const gatedUrl = resource['gated url'];
       meta['Gated URL'] = gatedUrl.startsWith('http') ? gatedUrl : `https://www.moleculardevices.com${gatedUrl}`;
     }
-    if (resource.Publisher) {
-      meta.Publisher = resource.Publisher;
+    if (resource.publisher) {
+      meta.Publisher = resource.publisher;
     }
-    if (FRAGMENT_TYPES.find((type) => type === resource['Asset Type'])) {
-      meta.Type = resource['Asset Type'];
+    if (FRAGMENT_TYPES.find((type) => type === resource['asset type'])) {
+      meta.Type = resource['asset type'];
     }
 
-    if (resource['Created On']) {
-      const publishDate = new Date(resource['Created On']);
+    if (resource['created on']) {
+      const publishDate = new Date(resource['created on']);
       if (publishDate) {
         meta['Publication Date'] = publishDate.toLocaleDateString('en-US', {
           year: 'numeric',
