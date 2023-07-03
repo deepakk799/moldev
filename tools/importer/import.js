@@ -388,7 +388,8 @@ const createMetadata = (url, document) => {
   }
 
   if (document.querySelector('body.page-node-type-landing-pages')) {
-    meta.Template = 'Landing Page ';
+    meta.Template = 'Landing Page';
+    document.type = 'Landing Page';
   }
   return meta;
 };
@@ -959,61 +960,62 @@ const transformColumns = (document) => {
     div.remove();
   });
 
-  while (document.querySelector('.row [class*="col-"]')) {
-    let blockColumns = [];
-    const colToRemove = [];
-    let col = document.querySelector('.row [class*="col-"]');
-    let newCol = col.cloneNode(true);
-    newCol.className = '';
-    blockColumns.push(newCol);
-    colToRemove.push(col);
-    while (col.nextElementSibling && col.nextElementSibling.className.indexOf('col-') > -1) {
-      col = col.nextElementSibling;
-      newCol = col.cloneNode(true);
+  if (document.type !== 'Landing Page') {
+    while (document.querySelector('.row [class*="col-"]')) {
+      let blockColumns = [];
+      const colToRemove = [];
+      let col = document.querySelector('.row [class*="col-"]');
+      let newCol = col.cloneNode(true);
       newCol.className = '';
       blockColumns.push(newCol);
       colToRemove.push(col);
-    }
-
-    const firstCol = colToRemove[0];
-    const row = firstCol.closest('.row:not(#col)');
-
-    if (firstCol.closest('section.franklin-horizontal') || row.querySelector('table')) {
-      firstCol.before(document.createElement('hr'));
-      const metaCells = [['Section Metadata'], [['style'], ['Columns 2']]];
-      const metaTable = WebImporter.DOMUtils.createTable(metaCells, document);
-      const lastCol = colToRemove[colToRemove.length - 1];
-      lastCol.after(metaTable);
-      row.classList.remove('row');
-    } else {
-      const cells = [['Columns']];
-      const blockOptions = [];
-      // check swap / reverse order tables
-      if (row.classList.contains('swap')) {
-        blockColumns = blockColumns.reverse();
-        blockOptions.push('swap');
+      while (col.nextElementSibling && col.nextElementSibling.className.indexOf('col-') > -1) {
+        col = col.nextElementSibling;
+        newCol = col.cloneNode(true);
+        newCol.className = '';
+        blockColumns.push(newCol);
+        colToRemove.push(col);
       }
 
-      // match column width layouts
-      // eslint-disable-next-line max-len, no-loop-func
-      const styleMatch = COLUMN_STYLES.find((e) => e.match.some((match) => firstCol.classList.contains(match)));
-      if (styleMatch) {
-        blockOptions.push(styleMatch.blockStyle);
-      }
+      const firstCol = colToRemove[0];
+      const row = firstCol.closest('.row:not(#col)');
 
-      if (blockOptions.length > 0) {
-        cells[0] = [`Columns (${blockOptions.join(', ')})`];
-      }
+      if (firstCol.closest('section.franklin-horizontal') || row.querySelector('table')) {
+        firstCol.before(document.createElement('hr'));
+        const metaCells = [['Section Metadata'], [['style'], ['Columns 2']]];
+        const metaTable = WebImporter.DOMUtils.createTable(metaCells, document);
+        const lastCol = colToRemove[colToRemove.length - 1];
+        lastCol.after(metaTable);
+        row.classList.remove('row');
+      } else {
+        const cells = [['Columns']];
+        const blockOptions = [];
+        // check swap / reverse order tables
+        if (row.classList.contains('swap')) {
+          blockColumns = blockColumns.reverse();
+          blockOptions.push('swap');
+        }
 
-      cells.push(blockColumns);
-      const table = WebImporter.DOMUtils.createTable(cells, document);
-      firstCol.before(table);
-      colToRemove.forEach((delCol) => {
-        delCol.remove();
-      });
+        // match column width layouts
+        // eslint-disable-next-line max-len, no-loop-func
+        const styleMatch = COLUMN_STYLES.find((e) => e.match.some((match) => firstCol.classList.contains(match)));
+        if (styleMatch) {
+          blockOptions.push(styleMatch.blockStyle);
+        }
+
+        if (blockOptions.length > 0) {
+          cells[0] = [`Columns (${blockOptions.join(', ')})`];
+        }
+
+        cells.push(blockColumns);
+        const table = WebImporter.DOMUtils.createTable(cells, document);
+        firstCol.before(table);
+        colToRemove.forEach((delCol) => {
+          delCol.remove();
+        });
+      }
     }
   }
-
   // keeping the old col parsing logic !!!
   // document.querySelectorAll('.row [class*="col-"]:first-of-type').forEach((column) => {
   // column.id = 'col';
@@ -1605,7 +1607,15 @@ const transformEmbeds = (document) => {
       const link = document.createElement('a');
       link.href = iframeSrc;
       link.textContent = iframeSrc;
-      const cells = [['Embed'], [link]];
+      let cells = [['Embed'], [link]];
+
+      // check if we are inside an `ebook-form` with related heading
+      const ebookForm = iframe.closest('.ebook-form');
+      if (ebookForm && ebookForm.querySelector('h4')) {
+        const wrapper = document.createElement('div');
+        wrapper.append(ebookForm.querySelector('h4'), link);
+        cells = [['Embed'], [wrapper]];
+      }
       const table = WebImporter.DOMUtils.createTable(cells, document);
       iframe.replaceWith(table);
     }
@@ -1658,12 +1668,12 @@ const transformProductOrderOptions = (document) => {
     }
 
     // collect description for all order options
-    div.querySelectorAll('.ordering_options .row .OneLinkHide a.add_to_cart').forEach((cartLink) => {
-      const variantId = cartLink.getAttribute('data-variant-id');
-      const optionRow = cartLink.closest('.row');
+    div.querySelectorAll('.ordering_options .row > div:nth-child(2) .legend').forEach((legend) => {
+      const variantSKU = legend.textContent;
+      const optionRow = legend.closest('.row');
       const specs = optionRow.querySelector('.ordering-title .specs');
       if (specs && specs.textContent && specs.textContent.trim().length > -1) {
-        cells.push([[variantId], [specs]]);
+        cells.push([[variantSKU], [specs]]);
       }
     });
 
@@ -2101,6 +2111,8 @@ export default {
       '.page-node-type-events .button-wrap .linkBtn.blue', // add to calender button on events
       '.content-section.cover-bg.curv-footer-top-section.white-text.lab-autm-pages',
       'img.new-tag', // to be checked
+      '.w-auto.cm-cart-counter',
+      '.bannerInnerPages .cart_wrap',
       '#product-image-modal', // TODO
     ]);
 
