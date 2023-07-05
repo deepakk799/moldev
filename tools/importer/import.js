@@ -42,7 +42,7 @@ const COUNTRY_MAPPING = [
   { country: 'China', locale: 'ZH' },
 ];
 
-const EXPORT_URL = 'https://main--moleculardevices--hlxsites.hlx.page/export/moldev-resources-sheet-06292023-finaldiff.json';
+const EXPORT_URL = 'https://main--moleculardevices--hlxsites.hlx.page/export/moldev-resources-sheet-06292023-final.json';
 
 const isProduct = (document) => document.type === 'Products' && document.querySelector('body').classList.contains('page-node-type-products');
 const isAssayKit = (document) => document.productType && (document.productType === 'Assay Kits' || document.productType === 'Labware');
@@ -99,7 +99,7 @@ const loadResourceMetaAttributes = (url, params, document, meta) => {
     if (resource['tagged to products']) {
       meta['Related Products'] = resource['tagged to products'];
     }
-    if (resource['Tagged to Technology']) {
+    if (resource['tagged to technology']) {
       meta['Related Technologies'] = resource['tagged to technology'];
     }
     if (resource['tagged to applications']) {
@@ -562,8 +562,8 @@ const transformHero = (document) => {
   });
 
   // detect the waved "ebook" style hero used on most gates pages plus some others
-  document.querySelectorAll('.ebook-banner.wave').forEach((hero) => {
-    const cells = [['Hero (wave)']];
+  document.querySelectorAll('.ebook-banner.wave, .ebook-banner.reversewave').forEach((hero) => {
+    const cells = hero.classList.contains('reversewave') ? [['Hero (wave, reverse)']] : [['Hero (wave)']];
     const heroContent = hero.querySelector('.mol-content');
     const heroThumbnail = hero.querySelector('.mol-img');
     const backgroundUrl = extractBackgroundImage(hero);
