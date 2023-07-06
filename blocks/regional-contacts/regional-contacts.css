@@ -129,9 +129,17 @@
   li {
   align-items: center;
   display: flex;
-  flex-wrap: wrap;
   padding: 10px 0;
   position: relative;
+}
+
+.regional-contacts-wrapper
+  .regional-contacts
+  .tab-accordian-wrapper
+  > div:nth-child(odd)
+  > ul:not(:first-child)
+  li:first-child {
+  flex-wrap: wrap;
 }
 
 .regional-contacts-wrapper
