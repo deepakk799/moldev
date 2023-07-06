@@ -819,7 +819,7 @@ const transformCustomerStory = (block, document) => {
 const transformButtons = (document) => {
   // convert primary/secondary buttons
   document.querySelectorAll('a.btn').forEach((button) => {
-    button.querySelectorAll('span').forEach((span) => span.remove());
+    //button.querySelectorAll('span').forEach((span) => span.remove());
     button.querySelectorAll('i.fa').forEach((icon) => {
       button.textContent = `${button.textContent} :${icon.classList[1]}:`;
       icon.remove();
@@ -1958,6 +1958,21 @@ const transformLandingPageRegistration = (document) => {
   }
 };
 
+const transformApplicationNote = (document) => {
+  document.querySelectorAll('section .editor_discription .OneLinkHide_zh').forEach((container) => {
+    container.before(document.createElement('hr'));
+
+    const sectionMetaData = WebImporter.DOMUtils.createTable([['Section Metadata'], ['style', 'OneLinkHide ZH']], document);
+    container.after(sectionMetaData, document.createElement('hr'));
+  });
+  document.querySelectorAll('section .editor_discription .OneLinkShow_zh').forEach((container) => {
+    if (container.previousElementSibling.nodeName !== 'HR') container.before(document.createElement('hr'));
+
+    const sectionMetaData = WebImporter.DOMUtils.createTable([['Section Metadata'], ['style', 'OneLinkShow ZH']], document);
+    container.after(sectionMetaData, document.createElement('hr'));
+  });
+};
+
 const prepareRequestQuoteLinks = (document) => {
   if (document.pid) {
     document.querySelectorAll('a').forEach((a) => {
@@ -2103,7 +2118,7 @@ export default {
       '.blogContentBox .image_modal.modal',
       '.visually-hidden.focusable.skip-link',
       '.ins-nav-container',
-      '.OneLinkShow_zh',
+      '.bannerWrap .OneLinkShow_zh',
       '.pro-comparison-result',
       '.onetrust-consent-sdk',
       '.drift-frame-chat',
@@ -2170,6 +2185,7 @@ export default {
       transformResources,
       transformLandingPageRegistration,
       transformLandingPageSamplePagesColumns,
+      transformApplicationNote,
       transformColumns,
       transformHashLinks,
       transformImageLinks,
