@@ -38,9 +38,7 @@ const META_SHEET_MAPPING = [
   { url: '/en/assets/customer-breakthrough', sheet: 'customer-breakthrough' },
 ];
 
-const COUNTRY_MAPPING = [
-  { country: 'China', locale: 'ZH' },
-];
+const COUNTRY_MAPPING = [{ country: 'China', locale: 'ZH' }];
 
 const EXPORT_URL = 'https://main--moleculardevices--hlxsites.hlx.page/export/moldev-resources-sheet-06292023-final.json';
 
@@ -70,7 +68,7 @@ const makeUrlRelative = (url) => {
  * Special handling for resource document meta data.
  */
 const loadResourceMetaAttributes = (url, params, document, meta) => {
-  let resourceMetadata = {};
+  let resourceMetadata = [];
   // we use old XMLHttpRequest as fetch seams to have problems in bulk import
   const request = new XMLHttpRequest();
   let sheet = 'resources';
@@ -111,7 +109,9 @@ const loadResourceMetaAttributes = (url, params, document, meta) => {
     if (resource['gated/ungated'] === 'Yes') {
       meta.Gated = 'Yes';
       const gatedUrl = resource['gated url'];
-      meta['Gated URL'] = gatedUrl.startsWith('http') ? gatedUrl : `https://www.moleculardevices.com${gatedUrl}`;
+      meta['Gated URL'] = gatedUrl.startsWith('http')
+        ? gatedUrl
+        : `https://www.moleculardevices.com${gatedUrl}`;
     }
     if (resource.publisher) {
       meta.Publisher = resource.publisher;
@@ -216,13 +216,19 @@ const loadResourceMetaAttributes = (url, params, document, meta) => {
       if (resource['product assay kits']) {
         meta['Product Assay Kits'] = resource['product assay kits'];
       }
-      if (resource['is series main product'] && resource['is series main product'].toLowerCase() === 'yes') {
+      if (
+        resource['is series main product'] &&
+        resource['is series main product'].toLowerCase() === 'yes'
+      ) {
         meta['Series Main Product'] = resource['is series main product'];
       }
       if (resource['series product']) {
         meta['Series Product'] = resource['series product'];
       }
-      if (resource['show in product finder'] && resource['show in product finder'].toLowerCase() === 'yes') {
+      if (
+        resource['show in product finder'] &&
+        resource['show in product finder'].toLowerCase() === 'yes'
+      ) {
         meta['Show in Product Finder'] = resource['show in product finder'];
       }
       if (resource['product weight']) {
@@ -303,7 +309,7 @@ const loadFragmentIndex = (type, ref) => {
   request.open(
     'GET',
     'https://main--moleculardevices--hlxsites.hlx.page/fragments/query-index.json?limit=1000',
-    false,
+    false
   );
   request.overrideMimeType('text/json; UTF-8');
   request.send(null);
@@ -313,7 +319,9 @@ const loadFragmentIndex = (type, ref) => {
   }
 
   // eslint-disable-next-line max-len
-  const fragment = fragments.find((n) => n.title.trim().toLowerCase() === ref.trim().toLowerCase() && n.type === type);
+  const fragment = fragments.find(
+    (n) => n.title.trim().toLowerCase() === ref.trim().toLowerCase() && n.type === type
+  );
   if (fragment && fragment.path.startsWith('/')) {
     fragment.path = `https://main--moleculardevices--hlxsites.hlx.page${fragment.path}`;
   }
@@ -401,7 +409,11 @@ const createMetadata = (url, document) => {
  */
 export function toClassName(name) {
   return typeof name === 'string'
-    ? name.toLowerCase().replace(/[^0-9a-z]/gi, '-').replace(/-+/g, '-').replace(/^-|-$/g, '')
+    ? name
+        .toLowerCase()
+        .replace(/[^0-9a-z]/gi, '-')
+        .replace(/-+/g, '-')
+        .replace(/^-|-$/g, '')
     : '';
 }
 
@@ -419,12 +431,17 @@ const cleanUp = (document) => {
   });
 
   // remove green default wave from pages as we are going to inject the fragment into every tab
-  document.querySelectorAll('div.content-section.cover-bg.curv-footer-top-section').forEach((wave) => wave.remove());
+  document
+    .querySelectorAll('div.content-section.cover-bg.curv-footer-top-section')
+    .forEach((wave) => wave.remove());
 
   // remove empty media gallery with not items
   const mediaGallery = document.querySelector('div#mediaGallary');
   if (mediaGallery) {
-    if (mediaGallery.querySelector('.carousel-inner') && mediaGallery.querySelector('.carousel-inner').childElementCount === 0) {
+    if (
+      mediaGallery.querySelector('.carousel-inner') &&
+      mediaGallery.querySelector('.carousel-inner').childElementCount === 0
+    ) {
       mediaGallery.remove();
     }
   }
@@ -437,7 +454,9 @@ const extractBackgroundImage = (content) => {
   }
 
   // fallback and check on attributes
-  const style = content.hasAttribute('style') ? content.getAttribute('style').replace(/(\r\n|\n|\r)/gm, '') : null;
+  const style = content.hasAttribute('style')
+    ? content.getAttribute('style').replace(/(\r\n|\n|\r)/gm, '')
+    : null;
 
   if (style && style.match(/background-image: url(?:\(['"]?)(.*?)(?:['"]?\))/)) {
     const backgroundUrl = style.match(/background-image: url(?:\(['"]?)(.*?)(?:['"]?\))/)[1];
@@ -448,122 +467,130 @@ const extractBackgroundImage = (content) => {
 
 const transformHero = (document) => {
   // detect the default hero styles
-  document.querySelectorAll('.section-image.cover-bg, .section-image.cover-bg-new, section.video-banner.message-banner').forEach((hero) => {
-    // clean
-    hero.querySelectorAll('.row').forEach((row) => row.removeAttribute('class'));
+  document
+    .querySelectorAll(
+      '.section-image.cover-bg, .section-image.cover-bg-new, section.video-banner.message-banner'
+    )
+    .forEach((hero) => {
+      // clean
+      hero.querySelectorAll('.row').forEach((row) => row.removeAttribute('class'));
 
-    // extract hero image
-    const backgroundUrl = extractBackgroundImage(hero);
-    let backgroundImg = null;
-    if (backgroundUrl) {
-      backgroundImg = document.createElement('img');
-      backgroundImg.src = backgroundUrl;
-    }
+      // extract hero image
+      const backgroundUrl = extractBackgroundImage(hero);
+      let backgroundImg = null;
+      if (backgroundUrl) {
+        backgroundImg = document.createElement('img');
+        backgroundImg.src = backgroundUrl;
+      }
 
-    // extract mobile image
-    let mobileBackgroundImg = null;
-    if (hero.querySelector('div.visible-xs-block > img')) {
-      const mobileBackgroundDiv = hero.querySelector('div.visible-xs-block');
-      mobileBackgroundImg = mobileBackgroundDiv.querySelector('img');
-      mobileBackgroundDiv.remove();
-    }
+      // extract mobile image
+      let mobileBackgroundImg = null;
+      if (hero.querySelector('div.visible-xs-block > img')) {
+        const mobileBackgroundDiv = hero.querySelector('div.visible-xs-block');
+        mobileBackgroundImg = mobileBackgroundDiv.querySelector('img');
+        mobileBackgroundDiv.remove();
+      }
 
-    // extract hero video
-    let videoLink = null;
-    if (hero.querySelector('.video-container')) {
-      const videoOverlay = hero.querySelector('.video-container');
-      const video = videoOverlay.querySelector('a[onclick]').getAttribute('onclick');
+      // extract hero video
+      let videoLink = null;
+      if (hero.querySelector('.video-container')) {
+        const videoOverlay = hero.querySelector('.video-container');
+        const video = videoOverlay.querySelector('a[onclick]').getAttribute('onclick');
 
-      const regex = /launchLightbox\('(.*)'\)|fn_vidyard_(.*)\(\)/;
-      let m;
-      // eslint-disable-next-line no-cond-assign
-      if ((m = regex.exec(video)) !== null) {
-        const videoId = m[1] || m[2];
-        if (videoId) {
-          videoLink = `https://share.vidyard.com/watch/${videoId}`;
+        const regex = /launchLightbox\('(.*)'\)|fn_vidyard_(.*)\(\)/;
+        let m;
+        // eslint-disable-next-line no-cond-assign
+        if ((m = regex.exec(video)) !== null) {
+          const videoId = m[1] || m[2];
+          if (videoId) {
+            videoLink = `https://share.vidyard.com/watch/${videoId}`;
+          }
+        }
+        videoOverlay.remove();
+      }
+
+      const cells = [['Hero']];
+      const isBlog = hero.classList.contains('blog-details');
+
+      // extract gallery links
+      let heroFilterLinks = null;
+      const heroFilterContainer = hero.querySelector('.product-res-filter');
+      if (heroFilterContainer) {
+        heroFilterContainer.remove('.active-filter');
+        heroFilterLinks = heroFilterContainer.querySelector('.views-element-container ul');
+        if (heroFilterLinks) {
+          cells[0] = ['Hero (Filter)'];
         }
       }
-      videoOverlay.remove();
-    }
 
-    const cells = [['Hero']];
-    const isBlog = hero.classList.contains('blog-details');
-
-    // extract gallery links
-    let heroFilterLinks = null;
-    const heroFilterContainer = hero.querySelector('.product-res-filter');
-    if (heroFilterContainer) {
-      heroFilterContainer.remove('.active-filter');
-      heroFilterLinks = heroFilterContainer.querySelector('.views-element-container ul');
-      if (heroFilterLinks) {
-        cells[0] = ['Hero (Filter)'];
-      }
-    }
-
-    // prepare hero content
-    const heroContent = isBlog ? hero.querySelector('.hero-desc') : hero.querySelector('.container');
-    if (heroContent.querySelector('.btn-wrap-mb')) {
-      const buttons = heroContent.querySelector('.btn-wrap-mb').children;
-      [...buttons].forEach((button) => {
-        const buttonWrapper = document.createElement('p');
-        button.parentNode.insertBefore(buttonWrapper, button);
-        buttonWrapper.append(button);
-      });
-    }
-    const row = [heroContent];
-
-    // add video link
-    if (videoLink) {
-      row.push([videoLink]);
-    }
-
-    // handle product pages with advanced header
-    if (isProduct(document) && !isAssayKit(document)) {
-      cells[0] = ['Hero Advanced'];
-      if (backgroundImg) {
-        cells.push(['Desktop', backgroundImg]);
-      }
-      if (mobileBackgroundImg) {
-        cells.push(['Mobile', mobileBackgroundImg]);
-      }
-    } else {
-      if (isBlog) {
-        cells[0] = ['Hero (Blog)'];
-      }
-      const isOrangeStyle = hero.querySelector('a.orangeBlueBtn');
-      if (isOrangeStyle) {
-        cells[0] = ['Hero (Orange Buttons)'];
-      }
-
-      if (backgroundImg) {
-        heroContent.insertBefore(backgroundImg, heroContent.firstChild);
-      }
-
-      // add second column for customer success story
-      const customerStoryHeader = hero.parentElement.querySelector('.customer-story-section');
-      if (customerStoryHeader) {
-        customerStoryHeader.querySelectorAll('.customer-info label').forEach((label) => {
-          const h6 = document.createElement('h6');
-          h6.innerHTML = label.innerHTML;
-          label.replaceWith(h6);
+      // prepare hero content
+      const heroContent = isBlog
+        ? hero.querySelector('.hero-desc')
+        : hero.querySelector('.container');
+      if (heroContent.querySelector('.btn-wrap-mb')) {
+        const buttons = heroContent.querySelector('.btn-wrap-mb').children;
+        [...buttons].forEach((button) => {
+          const buttonWrapper = document.createElement('p');
+          button.parentNode.insertBefore(buttonWrapper, button);
+          buttonWrapper.append(button);
         });
-        cells[0] = ['Hero (Customer Story)'];
-        row.push([customerStoryHeader]);
       }
-    }
+      const row = [heroContent];
 
-    cells.push(row);
-    if (heroFilterLinks) {
-      cells.push([heroFilterLinks]);
-    }
+      // add video link
+      if (videoLink) {
+        row.push([videoLink]);
+      }
 
-    const table = WebImporter.DOMUtils.createTable(cells, document);
-    hero.replaceWith(table);
-  });
+      // handle product pages with advanced header
+      if (isProduct(document) && !isAssayKit(document)) {
+        cells[0] = ['Hero Advanced'];
+        if (backgroundImg) {
+          cells.push(['Desktop', backgroundImg]);
+        }
+        if (mobileBackgroundImg) {
+          cells.push(['Mobile', mobileBackgroundImg]);
+        }
+      } else {
+        if (isBlog) {
+          cells[0] = ['Hero (Blog)'];
+        }
+        const isOrangeStyle = hero.querySelector('a.orangeBlueBtn');
+        if (isOrangeStyle) {
+          cells[0] = ['Hero (Orange Buttons)'];
+        }
+
+        if (backgroundImg) {
+          heroContent.insertBefore(backgroundImg, heroContent.firstChild);
+        }
+
+        // add second column for customer success story
+        const customerStoryHeader = hero.parentElement.querySelector('.customer-story-section');
+        if (customerStoryHeader) {
+          customerStoryHeader.querySelectorAll('.customer-info label').forEach((label) => {
+            const h6 = document.createElement('h6');
+            h6.innerHTML = label.innerHTML;
+            label.replaceWith(h6);
+          });
+          cells[0] = ['Hero (Customer Story)'];
+          row.push([customerStoryHeader]);
+        }
+      }
+
+      cells.push(row);
+      if (heroFilterLinks) {
+        cells.push([heroFilterLinks]);
+      }
+
+      const table = WebImporter.DOMUtils.createTable(cells, document);
+      hero.replaceWith(table);
+    });
 
   // detect the waved "ebook" style hero used on most gates pages plus some others
   document.querySelectorAll('.ebook-banner.wave, .ebook-banner.reversewave').forEach((hero) => {
-    const cells = hero.classList.contains('reversewave') ? [['Hero (wave, reverse)']] : [['Hero (wave)']];
+    const cells = hero.classList.contains('reversewave')
+      ? [['Hero (wave, reverse)']]
+      : [['Hero (wave)']];
     const heroContent = hero.querySelector('.mol-content');
     const heroThumbnail = hero.querySelector('.mol-img');
     const backgroundUrl = extractBackgroundImage(hero);
@@ -580,52 +607,60 @@ const transformHero = (document) => {
 
 // we have different usages of sections - with <section></section>, <div></div>
 const transformSections = (document) => {
-  document.querySelectorAll('section * section:not(.blogsPage), .category-page-section').forEach((section) => {
-    // if (index > 0) {
-    // section.firstChild.before(document.createElement('hr'));
-    // }
-    const cells = [['Section Metadata']];
-    const styles = [];
-    if (section.classList.contains('grey_molecules_bg_top')) {
-      styles.push('Background Molecules');
-    }
-    if (section.classList.contains('parallax-container1')) {
-      styles.push('Background Parallax');
-    }
-    if (section.classList.contains('franklin-horizontal')) {
-      styles.push('Columns 2');
-    }
-    if (section.classList.contains('greyBg') || section.classList.contains('bg-gray')) {
-      styles.push('Background Grey');
-    }
-    if (styles.length > 0) {
-      cells.push(['style', styles.toString()]);
-    }
+  document
+    .querySelectorAll('section * section:not(.blogsPage), .category-page-section')
+    .forEach((section) => {
+      // if (index > 0) {
+      // section.firstChild.before(document.createElement('hr'));
+      // }
+      const cells = [['Section Metadata']];
+      const styles = [];
+      if (section.classList.contains('grey_molecules_bg_top')) {
+        styles.push('Background Molecules');
+      }
+      if (section.classList.contains('parallax-container1')) {
+        styles.push('Background Parallax');
+      }
+      if (section.classList.contains('franklin-horizontal')) {
+        styles.push('Columns 2');
+      }
+      if (section.classList.contains('greyBg') || section.classList.contains('bg-gray')) {
+        styles.push('Background Grey');
+      }
+      if (styles.length > 0) {
+        cells.push(['style', styles.toString()]);
+      }
 
-    if (cells.length > 1) {
-      const table = WebImporter.DOMUtils.createTable(cells, document);
-      section.after(table, document.createElement('hr'));
-    }
-  });
+      if (cells.length > 1) {
+        const table = WebImporter.DOMUtils.createTable(cells, document);
+        section.after(table, document.createElement('hr'));
+      }
+    });
 };
 
 const transformFragmentDocuments = (document) => {
-  const isFragment = !![...document.querySelectorAll('table td')].find((td) => td.textContent === 'Type');
+  const isFragment = !![...document.querySelectorAll('table td')].find(
+    (td) => td.textContent === 'Type'
+  );
   if (isFragment) {
-    document.querySelectorAll('.section-image.cover-bg, .section-image.cover-bg-new').forEach((hero) => {
-      const headline = hero.querySelector('h1');
-      hero.before(headline);
-      const img = hero.querySelector('img');
-      if (img) {
-        hero.before(img);
-      }
-      const description = hero.querySelector('.hero-desc');
-      if (description) {
-        hero.before(description);
-      }
-      hero.remove();
-    });
-    document.querySelectorAll('.editor_discription .row').forEach((row) => row.classList.remove('row'));
+    document
+      .querySelectorAll('.section-image.cover-bg, .section-image.cover-bg-new')
+      .forEach((hero) => {
+        const headline = hero.querySelector('h1');
+        hero.before(headline);
+        const img = hero.querySelector('img');
+        if (img) {
+          hero.before(img);
+        }
+        const description = hero.querySelector('.hero-desc');
+        if (description) {
+          hero.before(description);
+        }
+        hero.remove();
+      });
+    document
+      .querySelectorAll('.editor_discription .row')
+      .forEach((row) => row.classList.remove('row'));
   }
 };
 
@@ -641,7 +676,9 @@ const transformTabsNav = (document) => {
 const transformTabsSections = (document) => {
   // move the wave section visible on the overview tab into the tab div
   const overviewWaveContent = document.getElementById('overviewTabContent');
-  const overviewTab = document.querySelector('.tab-content .tab-pane#Overview, .tab-content .tab-pane#overview');
+  const overviewTab = document.querySelector(
+    '.tab-content .tab-pane#Overview, .tab-content .tab-pane#overview'
+  );
   if (overviewTab) {
     if (overviewWaveContent && overviewWaveContent.classList.contains('cover-bg-no-cover')) {
       overviewTab.append(document.createElement('hr'), overviewWaveContent);
@@ -659,7 +696,9 @@ const transformTabsSections = (document) => {
     }
   }
 
-  const fragmentPath = hasCovidWave ? '/fragments/we-are-here-to-help' : '/fragments/next-big-discovery';
+  const fragmentPath = hasCovidWave
+    ? '/fragments/we-are-here-to-help'
+    : '/fragments/next-big-discovery';
 
   document.querySelectorAll('.tab-content .tab-pane').forEach((tab) => {
     const hasContent = tab.textContent.trim() !== '';
@@ -669,7 +708,10 @@ const transformTabsSections = (document) => {
 
       const metadataCells = [['Section Metadata']];
       // eslint-disable-next-line no-nested-ternary
-      metadataCells.push(['name', tabConfig ? ('sectionName' in tabConfig ? tabConfig.sectionName : tabConfig.id) : tab.id]);
+      metadataCells.push([
+        'name',
+        tabConfig ? ('sectionName' in tabConfig ? tabConfig.sectionName : tabConfig.id) : tab.id,
+      ]);
 
       const isOverviewTab = tab.id.toLowerCase() === 'overview';
       if (isOverviewTab) {
@@ -726,7 +768,13 @@ const transformProductOverviewHeadlines = (block, document) => {
 
 const transformImageList = (document) => {
   document.querySelectorAll('.listing-image').forEach((featureList) => {
-    const cells = [[featureList.classList.contains('overview-features') ? 'Image List (Features)' : 'Image List']];
+    const cells = [
+      [
+        featureList.classList.contains('overview-features')
+          ? 'Image List (Features)'
+          : 'Image List',
+      ],
+    ];
     [...featureList.children].forEach((item) => cells.push([...item.children]));
     const table = WebImporter.DOMUtils.createTable(cells, document);
     featureList.replaceWith(table);
@@ -737,7 +785,10 @@ const transformFeatureSection = (block, document) => {
   const featuresSection = block.querySelector('.featuredSection');
   if (featuresSection) {
     featuresSection.before(document.createElement('hr'));
-    const sectionMetaData = WebImporter.DOMUtils.createTable([['Section Metadata'], ['style', 'Features Section']], document);
+    const sectionMetaData = WebImporter.DOMUtils.createTable(
+      [['Section Metadata'], ['style', 'Features Section']],
+      document
+    );
     featuresSection.after(sectionMetaData, document.createElement('hr'));
   }
 };
@@ -754,7 +805,10 @@ const transformResourcesCarousel = (block, document) => {
       carousel.replaceWith(table);
     }
     if (recentResources.classList.contains('greyBg')) {
-      const sectionMetaData = WebImporter.DOMUtils.createTable([['Section Metadata'], ['style', 'Background Grey, Center']], document);
+      const sectionMetaData = WebImporter.DOMUtils.createTable(
+        [['Section Metadata'], ['style', 'Background Grey, Center']],
+        document
+      );
       recentResources.after(sectionMetaData);
     }
   }
@@ -764,11 +818,19 @@ const transformImageGallery = (document) => {
   const imageGallery = document.querySelector('.images-gallery1, .images-gallery');
   if (imageGallery) {
     // get thumbnails
-    const thumbnails = imageGallery.querySelectorAll('.row .fst-set img, .row.snd-set img, .snd-set img');
+    const thumbnails = imageGallery.querySelectorAll(
+      '.row .fst-set img, .row.snd-set img, .snd-set img'
+    );
     // get lightbox images
     const imageContainer = imageGallery.querySelector('.modal .carousel');
     if (imageContainer) {
-      const cells = [[imageGallery.classList.contains('images-gallery1') ? 'Image Gallery (showcase right)' : 'Image Gallery']];
+      const cells = [
+        [
+          imageGallery.classList.contains('images-gallery1')
+            ? 'Image Gallery (showcase right)'
+            : 'Image Gallery',
+        ],
+      ];
       const entries = imageContainer.querySelectorAll('.carousel .item');
       entries.forEach((entry, index) => {
         if (index < thumbnails.length) {
@@ -795,7 +857,11 @@ const transformFeaturedApplicationsCarousel = (block, document) => {
     const applications = div.querySelectorAll('.pro-container h3');
     if (applications) {
       // eslint-disable-next-line max-len
-      const linkList = createFragmentList(document, 'Applications', [...applications].map((h3) => h3.textContent.trim()));
+      const linkList = createFragmentList(
+        document,
+        'Applications',
+        [...applications].map((h3) => h3.textContent.trim())
+      );
       cells.push([linkList]);
     }
     const table = WebImporter.DOMUtils.createTable(cells, document);
@@ -834,11 +900,15 @@ const transformButtons = (document) => {
   });
 
   // convert secondary buttons
-  document.querySelectorAll('a.gradiantTealreverse, a.gradiantOrangereverse, a.whiteBtn, a.banner_btn.bluebdr-mb, a.banner_btn').forEach((button) => {
-    const wrapper = document.createElement('em');
-    wrapper.innerHTML = button.outerHTML;
-    button.replaceWith(wrapper);
-  });
+  document
+    .querySelectorAll(
+      'a.gradiantTealreverse, a.gradiantOrangereverse, a.whiteBtn, a.banner_btn.bluebdr-mb, a.banner_btn'
+    )
+    .forEach((button) => {
+      const wrapper = document.createElement('em');
+      wrapper.innerHTML = button.outerHTML;
+      button.replaceWith(wrapper);
+    });
 
   // convert links with icons
   document.querySelectorAll('a.linkBtn').forEach((button) => {
@@ -870,7 +940,9 @@ const transformTables = (document) => {
 
     // get number of columns
     // eslint-disable-next-line max-len
-    const numCols = table.rows[0] ? [...table.rows[0].cells].reduce((cols, cell) => cols + cell.colSpan, 0) : 0;
+    const numCols = table.rows[0]
+      ? [...table.rows[0].cells].reduce((cols, cell) => cols + cell.colSpan, 0)
+      : 0;
 
     // convert caption into header row
     table.querySelectorAll('caption').forEach((caption) => {
@@ -998,7 +1070,9 @@ const transformColumns = (document) => {
 
         // match column width layouts
         // eslint-disable-next-line max-len, no-loop-func
-        const styleMatch = COLUMN_STYLES.find((e) => e.match.some((match) => firstCol.classList.contains(match)));
+        const styleMatch = COLUMN_STYLES.find((e) =>
+          e.match.some((match) => firstCol.classList.contains(match))
+        );
         if (styleMatch) {
           blockOptions.push(styleMatch.blockStyle);
         }
@@ -1081,7 +1155,9 @@ const transformReferenceProducts = (document) => {
       parentSection.classList.add('franklin-horizontal');
       const featuredProducts = featuredProductsBlock.querySelector('.view-customer-story-product');
       const cells = [['Featured Products Carousel (mini)']];
-      featuredProducts.querySelectorAll('.product-container').forEach((p) => cells.push([...p.children]));
+      featuredProducts
+        .querySelectorAll('.product-container')
+        .forEach((p) => cells.push([...p.children]));
       const table = WebImporter.DOMUtils.createTable(cells, document);
       featuredProducts.replaceWith(table);
     }
@@ -1165,20 +1241,31 @@ const transformImageLinks = (document) => {
 
 const transformRequestQuoteLinks = (document) => {
   const request = new XMLHttpRequest();
-  request.open('GET', `${EXPORT_URL}?limit=10000&sheet=products&sheet=applications&sheet=technologies&sheet=customer-breakthrough`, false);
+  request.open(
+    'GET',
+    `${EXPORT_URL}?limit=10000&sheet=products&sheet=applications&sheet=technologies&sheet=customer-breakthrough`,
+    false
+  );
   request.overrideMimeType('text/json; UTF-8');
   request.send(null);
   let resourceMetadata = null;
   if (request.status === 200) {
     const responseData = JSON.parse(request.responseText);
     // eslint-disable-next-line max-len
-    resourceMetadata = responseData.products.data.concat(responseData.applications.data).concat(responseData.technologies.data);
+    resourceMetadata = responseData.products.data
+      .concat(responseData.applications.data)
+      .concat(responseData.technologies.data);
   }
 
   document.querySelectorAll('a').forEach((link) => {
     if (link.href && link.href.indexOf('/quote-request') > -1) {
       const parameters = new URLSearchParams(link.href.substring(link.href.indexOf('?') + 1));
-      if (parameters && parameters.has('pid') && Number.isInteger(Number(parameters.get('pid'))) && resourceMetadata) {
+      if (
+        parameters &&
+        parameters.has('pid') &&
+        Number.isInteger(Number(parameters.get('pid'))) &&
+        resourceMetadata
+      ) {
         const pid = parameters.get('pid');
         const resource = resourceMetadata.find((n) => n.pid === pid);
 
@@ -1190,7 +1277,12 @@ const transformRequestQuoteLinks = (document) => {
           }
         }
       }
-    if (parameters && parameters.has('customer_breakthrough_id') && Number.isInteger(Number(parameters.get('customer_breakthrough_id'))) && resourceMetadata) {
+      if (
+        parameters &&
+        parameters.has('customer_breakthrough_id') &&
+        Number.isInteger(Number(parameters.get('customer_breakthrough_id'))) &&
+        resourceMetadata
+      ) {
         const pid = parameters.get('customer_breakthrough_id');
         if (parameters.has('pid') && Number.isNaN(Number(parameters.get('pid')))) {
           parameters.delete('customer_breakthrough_id');
@@ -1217,7 +1309,9 @@ const transformHashLinks = (document) => {
       const idElement = document.getElementById(hashId);
       if (idElement) {
         const newHash = toClassName(idElement.textContent);
-        const path = WebImporter.FileUtils.sanitizePath(new URL(document.originalURL).pathname.replace(/\.html$/, '').replace(/\/$/, ''));
+        const path = WebImporter.FileUtils.sanitizePath(
+          new URL(document.originalURL).pathname.replace(/\.html$/, '').replace(/\/$/, '')
+        );
         link.href = `${path}#${newHash}`;
       }
     }
@@ -1337,7 +1431,10 @@ const transformCustomerBreakthroughCarousel = (document) => {
 
 const transformCustomerBreakthroughShareStory = (document) => {
   document.querySelectorAll('.share-story').forEach((share) => {
-    share.after(document.createElement('hr'), createFragmentTable(document, '/fragments/next-big-discovery'));
+    share.after(
+      document.createElement('hr'),
+      createFragmentTable(document, '/fragments/next-big-discovery')
+    );
 
     const cells = [['Share Story'], [share.querySelector('h3')]];
     const table = WebImporter.DOMUtils.createTable(cells, document);
@@ -1462,23 +1559,25 @@ const transformLinkedCardCarousel = (document) => {
   //   parent.replaceWith(table);
   // });
 
-  document.querySelectorAll('.category-page-section .app-n-res .owl-carousel').forEach((container) => {
-    const parent = container.closest('.app-n-res');
-    const cells = [['Carousel (Cards)']];
+  document
+    .querySelectorAll('.category-page-section .app-n-res .owl-carousel')
+    .forEach((container) => {
+      const parent = container.closest('.app-n-res');
+      const cells = [['Carousel (Cards)']];
 
-    container.querySelectorAll('.owl-carousel .item').forEach((item) => {
-      const image = item.querySelector('img');
-      const content = item.querySelector('.pro-details');
-      const detailsLink = item.querySelector('.compare-box a');
+      container.querySelectorAll('.owl-carousel .item').forEach((item) => {
+        const image = item.querySelector('img');
+        const content = item.querySelector('.pro-details');
+        const detailsLink = item.querySelector('.compare-box a');
 
-      content.append(detailsLink);
+        content.append(detailsLink);
 
-      cells.push([image, content]);
+        cells.push([image, content]);
+      });
+
+      const table = WebImporter.DOMUtils.createTable(cells, document);
+      parent.replaceWith(table);
     });
-
-    const table = WebImporter.DOMUtils.createTable(cells, document);
-    parent.replaceWith(table);
-  });
 };
 
 const transformVideoOverviewCards = (document) => {
@@ -1518,7 +1617,15 @@ const transformCitations = (document) => {
 
     document.querySelectorAll('.citations .views-element-container').forEach((citation) => {
       const cells = [['Citations']];
-      const linkList = createFragmentList(document, 'Citation', [...citation.querySelectorAll('#citation-accordian .views-row h2, .cell-match-height .citation-tab-list h2')].map((h2) => h2.textContent.trim()));
+      const linkList = createFragmentList(
+        document,
+        'Citation',
+        [
+          ...citation.querySelectorAll(
+            '#citation-accordian .views-row h2, .cell-match-height .citation-tab-list h2'
+          ),
+        ].map((h2) => h2.textContent.trim())
+      );
       cells.push([linkList]);
       const table = WebImporter.DOMUtils.createTable(cells, document);
       citation.replaceWith(table);
@@ -1529,7 +1636,7 @@ const transformCitations = (document) => {
 const transformEventDetails = (document) => {
   const container = document.querySelector('.event-block + div');
   if (container) {
-  // if (document.querySelector('body.page-node-type-events')) {
+    // if (document.querySelector('body.page-node-type-events')) {
     container.classList.remove('row');
     container.closest('.row').classList.remove('row');
     document.querySelectorAll('.event-block').forEach((div) => div.remove());
@@ -1545,12 +1652,13 @@ const transformEventDetails = (document) => {
     const relatedResources = document.querySelector('.products-container-area');
     if (relatedResources) {
       const cells = [['Resources Carousel']];
-      const links = [...relatedResources.querySelectorAll('.scroll-item .pro-container h3')]
-        .map((h3) => {
+      const links = [...relatedResources.querySelectorAll('.scroll-item .pro-container h3')].map(
+        (h3) => {
           const a = h3.closest('a');
           a.textContent = h3.textContent;
           return a;
-        });
+        }
+      );
       cells.push([links]);
       const table = WebImporter.DOMUtils.createTable(cells, document);
       relatedResources.replaceWith(table);
@@ -1653,7 +1761,12 @@ const transformProductSpecs = (document) => {
   const div = document.querySelector('div.tab-pane#specs .specsTable');
   if (div && document.originalURL) {
     const filename = document.originalURL.substring(document.originalURL.lastIndexOf('/') + 1);
-    const cells = [['Specifications'], [`https://main--moleculardevices--hlxsites.hlx.page/products/specifications/${filename}.json`]];
+    const cells = [
+      ['Specifications'],
+      [
+        `https://main--moleculardevices--hlxsites.hlx.page/products/specifications/${filename}.json`,
+      ],
+    ];
     const table = WebImporter.DOMUtils.createTable(cells, document);
     div.replaceWith(table);
   }
@@ -1707,7 +1820,7 @@ const transformProductApplications = (document) => {
         const linkList = createFragmentList(
           document,
           'Applications',
-          [...applications].map((h2) => h2.textContent.trim()),
+          [...applications].map((h2) => h2.textContent.trim())
         );
         cells.push([linkList]);
       }
@@ -1734,7 +1847,7 @@ const transformProductAssayData = (document) => {
         const linkList = createFragmentList(
           document,
           'Assay Data',
-          [...applications].map((h2) => h2.textContent.trim()),
+          [...applications].map((h2) => h2.textContent.trim())
         );
         cells.push([linkList]);
       }
@@ -1761,12 +1874,17 @@ const transformResources = (document) => {
 };
 
 const transformTechnologyApplications = (document) => {
-  document.querySelectorAll('.views-element-container .fortebiocls.view-application-resources, .technology-section.fortebiocls.view-product-resource-widyard')
+  document
+    .querySelectorAll(
+      '.views-element-container .fortebiocls.view-application-resources, .technology-section.fortebiocls.view-product-resource-widyard'
+    )
     .forEach((div) => {
       if (div.childElementCount > 0) {
         div.querySelectorAll('.modal.fade').forEach((modals) => modals.remove());
         const cells = [['Related Applications']];
-        const hasTOC = div.closest('.horizontal-list-tab').querySelector('.view-display-id-block_15') || document.querySelector('.technology-section.overview-block');
+        const hasTOC =
+          div.closest('.horizontal-list-tab').querySelector('.view-display-id-block_15') ||
+          document.querySelector('.technology-section.overview-block');
         if (hasTOC) {
           cells[0] = ['Related Applications (TOC)'];
           hasTOC.remove();
@@ -1779,7 +1897,7 @@ const transformTechnologyApplications = (document) => {
           const linkList = createFragmentList(
             document,
             'Applications',
-            [...applications].map((h2) => h2.textContent.trim()),
+            [...applications].map((h2) => h2.textContent.trim())
           );
           cells.push([linkList]);
         }
@@ -1802,12 +1920,18 @@ const transformProductCompareTable = (document) => {
 
       // get the products
       const productLinks = [];
-      div.querySelectorAll('#productcomparison th .comp-tbl-lbl a, #productcomparison th .pro-details a').forEach((productLink) => {
-        const filename = productLink.href.substring(productLink.href.lastIndexOf('/') + 1);
-        const p = document.createElement('p');
-        p.append(`https://main--moleculardevices--hlxsites.hlx.page/products/specifications/${filename}.json`);
-        productLinks.push(p);
-      });
+      div
+        .querySelectorAll(
+          '#productcomparison th .comp-tbl-lbl a, #productcomparison th .pro-details a'
+        )
+        .forEach((productLink) => {
+          const filename = productLink.href.substring(productLink.href.lastIndexOf('/') + 1);
+          const p = document.createElement('p');
+          p.append(
+            `https://main--moleculardevices--hlxsites.hlx.page/products/specifications/${filename}.json`
+          );
+          productLinks.push(p);
+        });
       cells.push(['products', productLinks]);
 
       // get the attributes to be displayed
@@ -1833,7 +1957,12 @@ const transformProductProvenComplicateFragment = (document) => {
       const fragmentContent = heading.nextElementSibling;
       if (fragmentContent) {
         heading.remove();
-        fragmentContent.replaceWith(createFragmentTable(document, 'https://main--moleculardevices--hlxsites.hlx.page/fragments/product-proven-compliance'));
+        fragmentContent.replaceWith(
+          createFragmentTable(
+            document,
+            'https://main--moleculardevices--hlxsites.hlx.page/fragments/product-proven-compliance'
+          )
+        );
       }
     }
   });
@@ -1916,7 +2045,10 @@ const transformElisaWorkflow = (document) => {
     cells.push([h2]);
 
     div.querySelectorAll('.conference-timeline-content .timeline-article').forEach((entry) => {
-      cells.push([entry.querySelector('.content-left-container')], [entry.querySelector('.content-right-container')]);
+      cells.push(
+        [entry.querySelector('.content-left-container')],
+        [entry.querySelector('.content-right-container')]
+      );
     });
 
     const table = WebImporter.DOMUtils.createTable(cells, document);
@@ -1954,7 +2086,13 @@ const transformLandingPageRegistration = (document) => {
     const thankyouMetaCells = [['Section Metadata'], [['style'], ['Thank you page']]];
     const thankyouMetaTable = WebImporter.DOMUtils.createTable(thankyouMetaCells, document);
 
-    container.append(metaTable, document.createElement('hr'), placeholder, thankyouMetaTable, document.createElement('hr'));
+    container.append(
+      metaTable,
+      document.createElement('hr'),
+      placeholder,
+      thankyouMetaTable,
+      document.createElement('hr')
+    );
   }
 };
 
@@ -1962,13 +2100,20 @@ const transformApplicationNote = (document) => {
   document.querySelectorAll('section .editor_discription .OneLinkHide_zh').forEach((container) => {
     container.before(document.createElement('hr'));
 
-    const sectionMetaData = WebImporter.DOMUtils.createTable([['Section Metadata'], ['style', 'OneLinkHide ZH']], document);
+    const sectionMetaData = WebImporter.DOMUtils.createTable(
+      [['Section Metadata'], ['style', 'OneLinkHide ZH']],
+      document
+    );
     container.after(sectionMetaData, document.createElement('hr'));
   });
   document.querySelectorAll('section .editor_discription .OneLinkShow_zh').forEach((container) => {
-    if (container.previousElementSibling.nodeName !== 'HR') container.before(document.createElement('hr'));
+    if (container.previousElementSibling.nodeName !== 'HR')
+      container.before(document.createElement('hr'));
 
-    const sectionMetaData = WebImporter.DOMUtils.createTable([['Section Metadata'], ['style', 'OneLinkShow ZH']], document);
+    const sectionMetaData = WebImporter.DOMUtils.createTable(
+      [['Section Metadata'], ['style', 'OneLinkShow ZH']],
+      document
+    );
     container.after(sectionMetaData, document.createElement('hr'));
   });
 };
@@ -1978,7 +2123,10 @@ const prepareRequestQuoteLinks = (document) => {
     document.querySelectorAll('a').forEach((a) => {
       if (a.href && a.href.indexOf('/quote-request') > -1) {
         const urlParams = new URLSearchParams(a.href.substring(14));
-        if (urlParams.has('request_type') && urlParams.get('request_type').toLocaleLowerCase() === 'call') {
+        if (
+          urlParams.has('request_type') &&
+          urlParams.get('request_type').toLocaleLowerCase() === 'call'
+        ) {
           urlParams.delete('request_type');
         }
         urlParams.set('pid', document.pid);
@@ -1991,7 +2139,7 @@ const prepareRequestQuoteLinks = (document) => {
 function makeAbsoluteLinks(main, url) {
   const HOST = 'https://main--moleculardevices--hlxsites.hlx.page/';
   const pagePath = WebImporter.FileUtils.sanitizePath(
-    new URL(url).pathname.replace(/\.html$/, '').replace(/\/$/, ''),
+    new URL(url).pathname.replace(/\.html$/, '').replace(/\/$/, '')
   );
 
   main.querySelectorAll('a').forEach((a) => {
@@ -2027,7 +2175,10 @@ export default {
    */
   preprocess: ({
     // eslint-disable-next-line no-unused-vars
-    document, url, html, params,
+    document,
+    url,
+    html,
+    params,
   }) => {
     // try to fix malformed URLs
     document.querySelectorAll('a').forEach((a) => {
@@ -2063,7 +2214,9 @@ export default {
     // rewrite media gallery link if present and remove galley items
     const heroMediaGalleryLink = document.getElementById('openMediaGallery');
     if (heroMediaGalleryLink) {
-      const pageUrl = WebImporter.FileUtils.sanitizePath(new URL(url).pathname.replace(/\.html$/, '').replace(/\/$/, '')).substring(1);
+      const pageUrl = WebImporter.FileUtils.sanitizePath(
+        new URL(url).pathname.replace(/\.html$/, '').replace(/\/$/, '')
+      ).substring(1);
       const pageType = pageUrl.substring(0, pageUrl.indexOf('/'));
       const pageFilename = pageUrl.substring(pageUrl.lastIndexOf('/') + 1);
       heroMediaGalleryLink.href = `/fragments/media-gallery/${pageType}/${pageFilename}`;
@@ -2080,7 +2233,9 @@ export default {
 
     // rewrite all links with spans before they get cleaned up
     document.querySelectorAll('a span.text').forEach((span) => span.replaceWith(span.textContent));
-    document.querySelectorAll('a strong').forEach((strong) => strong.replaceWith(strong.textContent));
+    document
+      .querySelectorAll('a strong')
+      .forEach((strong) => strong.replaceWith(strong.textContent));
   },
 
   /**
@@ -2094,7 +2249,10 @@ export default {
    */
   transformDOM: ({
     // eslint-disable-next-line no-unused-vars
-    document, url, html, params,
+    document,
+    url,
+    html,
+    params,
   }) => {
     // define the main element: the one that will be transformed to Markdown
     const main = document.body;
@@ -2209,11 +2367,21 @@ export default {
 
   generateDocumentPath: ({
     // eslint-disable-next-line no-unused-vars
-    document, url, html, params,
+    document,
+    url,
+    html,
+    params,
   }) => {
     if (url.indexOf('page=thankyou') > -1) {
-      return WebImporter.FileUtils.sanitizePath(new URL(url).pathname.replace(/\.html$/, '').replace(/\/$/, '').concat('-thankyou'));
+      return WebImporter.FileUtils.sanitizePath(
+        new URL(url).pathname
+          .replace(/\.html$/, '')
+          .replace(/\/$/, '')
+          .concat('-thankyou')
+      );
     }
-    return WebImporter.FileUtils.sanitizePath(new URL(url).pathname.replace(/\.html$/, '').replace(/\/$/, ''));
+    return WebImporter.FileUtils.sanitizePath(
+      new URL(url).pathname.replace(/\.html$/, '').replace(/\/$/, '')
+    );
   },
 };
