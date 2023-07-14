@@ -1157,7 +1157,11 @@ const transformReferenceProducts = (document) => {
       const cells = [['Featured Products Carousel (mini)']];
       featuredProducts
         .querySelectorAll('.product-container')
-        .forEach((p) => cells.push([...p.children]));
+        .forEach((p) => {
+          // eslint-disable-next-line no-return-assign
+          p.querySelectorAll('a').forEach((a) => a.href = a.href.trim());
+          cells.push([...p.children]);
+        });
       const table = WebImporter.DOMUtils.createTable(cells, document);
       featuredProducts.replaceWith(table);
     }
@@ -1173,6 +1177,18 @@ const transformQuotes = (document) => {
     }
     const table = WebImporter.DOMUtils.createTable(cells, document);
     quote.replaceWith(table);
+  });
+
+  document.querySelectorAll('.testimonials').forEach((quote) => {
+    if (!quote.closest('table')) {
+      const cells = [['Quote']];
+      cells.push([quote.querySelector('em')]);
+      if (quote.querySelector('label')) {
+        cells.push([quote.querySelector('label')]);
+      }
+      const table = WebImporter.DOMUtils.createTable(cells, document);
+      quote.replaceWith(table);
+    }
   });
 };
 
