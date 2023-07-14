@@ -1053,11 +1053,11 @@ const transformColumns = (document) => {
       const row = firstCol.closest('.row:not(#col)');
 
       if (firstCol.closest('section.franklin-horizontal') || row.querySelector('table')) {
-        firstCol.before(document.createElement('hr'));
-        const metaCells = [['Section Metadata'], [['style'], ['Columns 2']]];
-        const metaTable = WebImporter.DOMUtils.createTable(metaCells, document);
-        const lastCol = colToRemove[colToRemove.length - 1];
-        lastCol.after(metaTable);
+        //firstCol.before(document.createElement('hr'));
+        // const metaCells = [['Section Metadata'], [['style'], ['Columns 2']]];
+        // const metaTable = WebImporter.DOMUtils.createTable(metaCells, document);
+        // const lastCol = colToRemove[colToRemove.length - 1];
+        //lastCol.after(metaTable);
         row.classList.remove('row');
       } else {
         const cells = [['Columns']];
