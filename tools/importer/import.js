@@ -535,6 +535,17 @@ const transformHero = (document) => {
           buttonWrapper.append(button);
         });
       }
+
+      // prepare testimonials inside the hero
+      heroContent.querySelectorAll('.testimonials').forEach((quote) => {
+        const author = quote.querySelector('label');
+        if (author) {
+            const wrapper = document.createElement('p');
+            wrapper.textContent = author.textContent;
+            author.replaceWith(wrapper);
+        }
+      });
+
       const row = [heroContent];
 
       // add video link
@@ -2303,6 +2314,7 @@ export default {
       '.w-auto.cm-cart-counter',
       '.bannerInnerPages .cart_wrap',
       '#product-image-modal', // TODO
+      'i.fa', // all fontawesome icons
     ]);
 
     // create the metadata block and append it to the main element
