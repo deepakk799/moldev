@@ -683,7 +683,8 @@ const transformContentTabs = (document) => {
 
       const tabsContent = new Map([...tabWrapper.querySelectorAll('.tab-content .tab-pane')].map((tab) => [tab.id, tab]));
       tabHeadings.forEach((item) => {
-        const id = item.querySelector('a').getAttribute('data-tab-link');
+        const a = item.querySelector('a');
+        const id = a.getAttribute('data-tab-link') ? a.getAttribute('data-tab-link') : a.href.substring(a.href.indexOf('#') + 1);
         const title = document.createElement('div');
         title.append(item.textContent);
 
