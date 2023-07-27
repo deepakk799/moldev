@@ -675,6 +675,32 @@ const transformFragmentDocuments = (document) => {
   }
 };
 
+const transformContentTabs = (document) => {
+  document.querySelectorAll('.cm-nav-tab-wrapper').forEach((tabWrapper) => {
+    const tabHeadings = tabWrapper.querySelectorAll('ul.nav.nav-tabs li');
+    if (tabHeadings && tabHeadings.length > 0) {
+      const cells = [['Tabs Horizontal']];
+
+      const tabsContent = new Map([...tabWrapper.querySelectorAll('.tab-content .tab-pane')].map((tab) => [tab.id, tab]));
+      tabHeadings.forEach((item) => {
+        const id = item.querySelector('a').getAttribute('data-tab-link');
+        const title = document.createElement('div');
+        title.append(item.textContent);
+
+        const content = tabsContent.get(id);
+        content.querySelectorAll('img').forEach((img) => {
+          const rowWrapper = img.closest('.row');
+          if (rowWrapper) rowWrapper.replaceWith(img);
+        });
+        cells.push([title, content]);
+      });
+
+      const table = WebImporter.DOMUtils.createTable(cells, document);
+      tabWrapper.replaceWith(table);
+    }
+  });
+};
+
 const transformTabsNav = (document) => {
   const tabNav = document.querySelector('.nav.nav-tabs');
   if (tabNav) {
@@ -2224,6 +2250,11 @@ export default {
       }
     });
 
+    // try to fix malformed img src
+    document.querySelectorAll('img').forEach((img) => {
+      img.src = img.src.trim();
+    });
+
     // prepare vidyard script URLs before their are filtered
     document.querySelectorAll('.video script').forEach((vidyard) => {
       const scriptsToTest = ['ceros', 'embed/v4.js'];
@@ -2351,6 +2382,7 @@ export default {
       transformCustomerBreakthroughShareStory,
       transformCustomerBreakthroughCarousel,
       transformCustomerBreakthroughTeaser,
+      transformContentTabs,
       transformTabsNav,
       transformTabsSections,
       transformProductOverview,
