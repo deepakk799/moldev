@@ -12,7 +12,7 @@
 /* global WebImporter */
 /* eslint-disable no-console, class-methods-use-this */
 
-const EXPORT_URL = 'https://main--moleculardevices--hlxsites.hlx.page/export/moldev-resources-sheet-06292023-finaldiff.json';
+const EXPORT_URL = 'https://main--moleculardevices--hlxsites.hlx.page/export/moldev-resources-sheet-07312023-final.json';
 
 /**
  * Special handling for resource document meta data.

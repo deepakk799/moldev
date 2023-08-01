@@ -40,7 +40,7 @@ const META_SHEET_MAPPING = [
 
 const COUNTRY_MAPPING = [{ country: 'China', locale: 'ZH' }];
 
-const EXPORT_URL = 'https://main--moleculardevices--hlxsites.hlx.page/export/moldev-resources-sheet-06292023-final.json';
+const EXPORT_URL = 'https://main--moleculardevices--hlxsites.hlx.page/export/moldev-resources-sheet-07312023-final.json';
 
 const isProduct = (document) => document.type === 'Products' && document.querySelector('body').classList.contains('page-node-type-products');
 const isAssayKit = (document) => document.productType && (document.productType === 'Assay Kits' || document.productType === 'Labware');
