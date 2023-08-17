@@ -12,6 +12,9 @@
 /* global WebImporter */
 /* eslint-disable no-console, class-methods-use-this */
 
+const pantheonURLprefix = 'https://live-md30.pantheonsite.io';
+const pantheonLength = pantheonURLprefix.length;
+
 const TABS_MAPPING = [
   { id: 'overview', sectionName: 'Overview' },
   { id: 'Resources' },
@@ -40,7 +43,7 @@ const META_SHEET_MAPPING = [
 
 const COUNTRY_MAPPING = [{ country: 'China', locale: 'ZH' }];
 
-const EXPORT_URL = 'https://main--moleculardevices--hlxsites.hlx.page/export/moldev-resources-sheet-07312023-final.json';
+const EXPORT_URL = 'http://localhost:3001/tools/importer/import_resources.json';
 
 const isProduct = (document) => document.type === 'Products' && document.querySelector('body').classList.contains('page-node-type-products');
 const isAssayKit = (document) => document.productType && (document.productType === 'Assay Kits' || document.productType === 'Labware');
@@ -58,9 +61,10 @@ const formatDate = (date, includeTime = false) => {
 };
 
 const makeUrlRelative = (url) => {
-  if (url.startsWith('https://www.moleculardevices.com')) {
-    return url.substring(32, url.length);
+  if (url.startsWith(pantheonURLprefix)) {
+    return url.substring(pantheonLength, url.length);
   }
+
   return url;
 };
 
@@ -71,12 +75,11 @@ const loadResourceMetaAttributes = (url, params, document, meta) => {
   let resourceMetadata = [];
   // we use old XMLHttpRequest as fetch seams to have problems in bulk import
   const request = new XMLHttpRequest();
-  let sheet = 'resources';
-  const metaSheet = META_SHEET_MAPPING.find((m) => params.originalURL.indexOf(m.url) > -1);
-  if (metaSheet) {
-    sheet = metaSheet.sheet;
-  }
-  request.open('GET', `${EXPORT_URL}?limit=10000&sheet=${sheet}`, false);
+  // const metaSheet = META_SHEET_MAPPING.find((m) => params.originalURL.indexOf(m.url) > -1);
+  // if (metaSheet) {
+  //   sheet = metaSheet.sheet;
+  // }
+  request.open('GET', 'http://localhost:3001/tools/importer/import_resources.json', false);
   request.overrideMimeType('text/json; UTF-8');
   request.send(null);
   if (request.status === 200) {
@@ -111,7 +114,7 @@ const loadResourceMetaAttributes = (url, params, document, meta) => {
       const gatedUrl = resource['gated url'];
       meta['Gated URL'] = gatedUrl.startsWith('http')
         ? gatedUrl
-        : `https://www.moleculardevices.com${gatedUrl}`;
+        : `${pantheonURLprefix}${gatedUrl}`;
     }
     if (resource.publisher) {
       meta.Publisher = resource.publisher;
@@ -1297,7 +1300,7 @@ const transformRequestQuoteLinks = (document) => {
   const request = new XMLHttpRequest();
   request.open(
     'GET',
-    `${EXPORT_URL}?limit=10000&sheet=products&sheet=applications&sheet=technologies&sheet=customer-breakthrough`,
+    'http://localhost:3001/tools/importer/import_products.json',
     false
   );
   request.overrideMimeType('text/json; UTF-8');
@@ -2246,8 +2249,8 @@ export default {
         a.href = '';
       }
 
-      if (href.startsWith('https://www.moleculardevices.com')) {
-        a.href = href.substring(32, href.length);
+      if (href.startsWith(pantheonURLprefix)) {
+        a.href = href.substring(pantheonLength, href.length);
       }
     });
 
