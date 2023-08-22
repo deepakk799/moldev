@@ -237,6 +237,29 @@ export function decorateExternalLink(link) {
 export function decorateLinks(main) {
   main.querySelectorAll('a').forEach((link) => {
     const url = new URL(link.href);
+
+    if (url.pathname.startsWith('/quote-request')
+      && !url.searchParams.get('request_type') 
+      && link.classList.contains('button') 
+      &&  url.origin === window.location.origin) {
+
+      const title = link.getAttribute('title');
+      let requestType = '';
+      if (title.toLowerCase().includes('speak')) {
+        requestType = 'Call';
+      }
+      if (title.toLowerCase().includes('Request a demo')) {
+        requestType = 'Demo';
+      }
+
+      if (requestType) {
+        // eslint-disable-next-line no-console
+        console.log('NEEDS MANUAL FIX IN DOCUMENT! Temporarily adding request type for ', link);
+        url.searchParams.set('request_type', requestType);
+        link.href = url.toString();
+      }
+    }
+
     // decorate video links
     if (isVideo(url) && !link.closest('.block.hero-advanced') && !link.closest('.block.hero')) {
       const closestButtonContainer = link.closest('.button-container');
