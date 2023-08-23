@@ -1,0 +1,27 @@
+name: Regenerate the Coveo index XML
+on:
+  push:
+    branches:
+      - 1099
+  # repository_dispatch:
+  #   types:
+  #     - resource-published
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - name: Install and run
+        working-directory: ./coveo
+        run: |
+          node generate-coveo-sitemap.js
+      - name: Commit and push
+        run: |
+          git add ./coveo/coveo-xml.xml
+          git commit -m "Update generated coveo.xml file"
+          git push
