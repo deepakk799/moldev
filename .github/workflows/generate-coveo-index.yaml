@@ -8,12 +8,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Regenerate coveo.xml
-        uses: actions/checkout@v3
         uses: actions/setup-node@v3
         with:
           node-version: '18'
-        working-directory: ./coveo
         run: |
+          git checkout $GITHUB_REF
+          cd coveo
           node generate-coveo-sitemap.js
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
