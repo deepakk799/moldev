@@ -22,6 +22,8 @@ jobs:
           node generate-coveo-sitemap.js
       - name: Commit and push
         run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
           git add ./coveo/coveo-xml.xml
           git commit -m "Update generated coveo.xml file"
           git push
