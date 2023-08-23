@@ -3,17 +3,23 @@ on:
   push:
     branches:
       - 1099
+  # repository_dispatch:
+  #   types:
+  #     - resource-published
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Regenerate coveo.xml
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
+      - name: Run scripts and commit changes
+        if: ${{ endsWith(github.event.client_payload.path, '.json') }}
+        working-directory: ./coveo
         run: |
-          git checkout $GITHUB_REF
-          cd coveo
           node generate-coveo-sitemap.js
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
