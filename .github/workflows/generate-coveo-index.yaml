@@ -1,8 +1,8 @@
 name: Regenerate the Coveo index XML
 on:
-  repository_dispatch:
-    types:
-      - resource-published
+  push:
+    branches:
+      - 1099
 jobs:
   build:
     runs-on: ubuntu-latest
