@@ -119,7 +119,7 @@ class Card {
       && item.specifications !== '0'
     ) {
       c2aBlock.append(div({ class: 'compare-button' },
-        `${placeholders.compare || 'Compare'} (`,
+        'Vergleichen (',
         span({ class: 'compare-count' }, '0'),
         ')',
         span({

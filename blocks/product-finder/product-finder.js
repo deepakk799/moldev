@@ -235,12 +235,12 @@ async function stepThree(e) {
     });
     const cardRenderer = await createCard({
       c2aLinkStyle: true,
-      defaultButtonText: placeholders.requestQuote || 'Request Quote',
+      defaultButtonText: 'Angebot anfordern',
     });
     products.forEach((product) => {
       product.c2aLinkConfig = {
         href: `/quote-request?pid=${product.familyID}`,
-        'aria-label': placeholders.requestQuote || 'Request Quote',
+        'aria-label': 'Angebot anfordern',
         target: '_blank',
         rel: 'noopener noreferrer',
       };

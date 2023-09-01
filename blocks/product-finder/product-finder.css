@@ -75,7 +75,7 @@
   content: "\f14a";
 }
 
-.product-finder-container ul li > .progress-step { 
+.product-finder-container ul li > .progress-step {
   position: absolute;
   width: 16px;
   height: 16px;
@@ -263,7 +263,7 @@
 @media (max-width: 1200px) {
   .product-finder-container .card {
     width: 20%;
-  } 
+  }
 }
 
 .product-finder-container .card-caption {
