@@ -5,7 +5,8 @@ main div.section.quote-request-container {
   position: relative;
 }
 
-main div.section.quote-request-container.wave {
+main div.section.quote-request-container.wave,
+main div.section.quote-request-container.wave:last-child {
   padding-top: 80px;
   margin-top: 0;
   margin-bottom: 0;
@@ -102,6 +103,10 @@ main div.section.quote-request-container::after {
   background-repeat: no-repeat;
   background-size: cover;
   color: var(--text-white);
+}
+
+.rfq-product-wrapper:nth-child(2) .rfq-icon-list{
+  justify-content: center;
 }
 
 .rfq-icon-link .rfq-icon-img {

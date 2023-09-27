@@ -35,21 +35,38 @@ export async function getRFQDataByTitle(name) {
 }
 
 /* CREATE RFQ LIST BOX */
-function createRFQListBox(listArr, checkStep, callback) {
+function createRFQListBox(listArr, checkStep) {
   const list = ul({ class: 'rfq-icon-list' });
 
   listArr.forEach((rfq) => {
     const id = rfq.Type.toLowerCase().replace(',', '').trim();
+    const dataTabValue = checkStep === 'step-1' ? rfq.Type : rfq.Category;
+    const filterData = rfqCategories.filter(({ Type }) => Type.includes(dataTabValue) > 0);
+    const hasCateg = checkStep === 'step-1' && filterData.length > 0;
+    const hashValue = hasCateg ? '#step-2' : '#step-3';
+    // eslint-disable-next-line no-use-before-define
+    const callback = hasCateg ? stepTwo : stepThree;
+
+    let classes;
+    if (filterData.length > 0 && !rfq.Category) {
+      classes = 'rfq-icon-link has-categ';
+    } else {
+      classes = 'rfq-icon-link no-categ';
+    }
+    if (rfq.Category) {
+      classes = 'rfq-icon-link';
+    }
+
     list.appendChild(
       li(
         { class: 'rfq-icon-item' },
         a(
           {
-            class: 'rfq-icon-link',
-            id: id.split(' ').join('-'),
-            href: checkStep === 'step-1' ? '#step-2' : '#step-3',
-            'data-tab': checkStep === 'step-1' ? rfq.Type : rfq.Category,
-            onclick: callback,
+            class: classes,
+            'data-id': id.split(' ').join('-'),
+            href: hashValue,
+            'data-tab': dataTabValue,
+            onclick: callback.bind(null, dataTabValue),
           },
           img({
             class: 'rfq-icon-img',
@@ -80,10 +97,15 @@ function createProgessBar(val, checkStep) {
 
 function backOneStep(stepNum) {
   const currentTab = document.getElementById(stepNum);
-  const prevTab = currentTab.previousElementSibling;
+  if (currentTab.classList.contains('no-categ-form')) {
+    const rfqTypeTab = document.getElementById('step-1');
+    rfqTypeTab.style.display = 'block';
+  } else {
+    const prevTab = currentTab.previousElementSibling;
+    prevTab.style.display = 'block';
+  }
 
   currentTab.style.display = 'none';
-  prevTab.style.display = 'block';
 }
 
 function createBackBtn(stepNum) {
@@ -98,19 +120,10 @@ function createBackBtn(stepNum) {
   );
 }
 
-function iframeResizehandler(formUrl, id, root) {
-  root.querySelector('iframe').addEventListener('load', () => {
-    if (formUrl) {
-      /* global iFrameResize */
-      iFrameResize({ log: false }, id);
-    }
-  });
-}
-
-async function loadIframeForm(stepNum, data, type) {
+async function loadIframeForm(data, type) {
   loadScript('../../scripts/iframeResizer.min.js');
   const formUrl = 'https://info.moleculardevices.com/rfq';
-  const root = document.getElementById(stepNum);
+  const root = document.getElementById('step-3');
   root.innerHTML = '';
 
   let tab = '';
@@ -128,15 +141,21 @@ async function loadIframeForm(stepNum, data, type) {
     sfdcPrimaryApplication = data.title;
 
     // special handling for bundles and customer breakthrough
-    if (typeParam && typeParam.toLowerCase() === 'bundle' && data.productBundle && data.productBundle !== '0') {
+    if (typeParam
+      && typeParam.toLowerCase() === 'bundle'
+      && data.productBundle
+      && data.productBundle !== '0'
+    ) {
       tab = `${data.productBundle} Bundle`;
     } else if (data.type === 'Customer Breakthrough') {
       const fragmentHtml = await fetchFragment(data.path, false);
       if (fragmentHtml) {
         const fragmentElement = div();
         fragmentElement.innerHTML = fragmentHtml;
-        const relatedProducts = fragmentElement.querySelector('meta[name="related-products"]').getAttribute('content');
-        tab = (relatedProducts && relatedProducts.trim().length > 0) ? relatedProducts : data.title;
+        const relatedProducts = fragmentElement
+          .querySelector('meta[name="related-products"]')
+          .getAttribute('content');
+        tab = relatedProducts && relatedProducts.trim().length > 0 ? relatedProducts : data.title;
         sfdcPrimaryApplication = tab;
 
         const mainProduct = await getRFQDataByTitle(relatedProducts.split(',')[0].trim());
@@ -149,9 +168,11 @@ async function loadIframeForm(stepNum, data, type) {
   } else {
     tab = data;
     productFamily = rfqCategories.filter(({ Category }) => Category.includes(tab) > 0);
-    sfdcProductFamily = productFamily[0].ProductFamily;
-    sfdcProductSelection = sfdcProductFamily;
-    sfdcPrimaryApplication = sfdcProductFamily;
+    if (productFamily.length > 0) {
+      sfdcProductFamily = productFamily[0].ProductFamily;
+      sfdcProductSelection = sfdcProductFamily;
+      sfdcPrimaryApplication = sfdcProductFamily;
+    }
   }
 
   // get cmp in three steps: mdcmp parameter, cmp cookie, default campaign
@@ -171,7 +192,9 @@ async function loadIframeForm(stepNum, data, type) {
     gclid__c: getCookie('gclid') ? getCookie('gclid') : '',
     product_image: 'NA',
     requested_qdc_discussion__c: requestTypeParam || 'Quote',
-    return_url: data.familyID ? `https://www.moleculardevices.com/quote-request-success?cat=${data.familyID}` : 'https://www.moleculardevices.com/quote-request-success',
+    return_url: data.familyID
+      ? `https://www.moleculardevices.com/quote-request-success?cat=${data.familyID}`
+      : 'https://www.moleculardevices.com/quote-request-success',
   };
 
   root.appendChild(
@@ -188,17 +211,16 @@ async function loadIframeForm(stepNum, data, type) {
       }),
     ),
   );
-  root.appendChild(createBackBtn(stepNum));
-  iframeResizehandler(formUrl, '#contactQuoteRequest', root);
+  root.appendChild(createBackBtn('step-3'));
 }
 
 /* step one */
-function stepOne(callback) {
+function stepOne() {
   const stepNum = 'step-1';
   const root = document.getElementById(stepNum);
   const defaultProgessValue = 40;
 
-  const fetchRQFTypes = createRFQListBox(rfqTypes, stepNum, callback);
+  const fetchRQFTypes = createRFQListBox(rfqTypes, stepNum);
   const progressBarHtml = createProgessBar(defaultProgessValue, stepNum);
 
   root.appendChild(h3('What type of product are you interested in?'));
@@ -206,37 +228,9 @@ function stepOne(callback) {
   root.appendChild(progressBarHtml);
 }
 
-/* step three */
-function stepThree(e) {
-  e.preventDefault();
-  let tab = '';
-  if (e.target.getAttribute('data-tab')) {
-    tab = e.target.getAttribute('data-tab');
-  } else {
-    tab = e.target.closest('.rfq-icon-link').getAttribute('data-tab');
-  }
-
-  const stepNum = 'step-3';
-  const prevRoot = document.getElementById('step-2');
-  const root = document.getElementById(stepNum);
-  root.innerHTML = '';
-
-  loadIframeForm(stepNum, tab, 'Global');
-
-  root.style.display = 'block';
-  prevRoot.style.display = 'none';
-}
-
 /* step two */
-function stepTwo(e) {
-  e.preventDefault();
-
-  let tab = '';
-  if (e.target.getAttribute('data-tab')) {
-    tab = e.target.getAttribute('data-tab');
-  } else {
-    tab = e.target.closest('.rfq-icon-link').getAttribute('data-tab');
-  }
+function stepTwo(tab, event) {
+  event.preventDefault();
 
   const stepNum = 'step-2';
   const prevRoot = document.getElementById('step-1');
@@ -245,7 +239,7 @@ function stepTwo(e) {
   const filterData = rfqCategories.filter(({ Type }) => Type.includes(tab) > 0);
 
   const defaultProgessValue = 70;
-  const fetchRQFTypes = createRFQListBox(filterData, stepNum, stepThree);
+  const fetchRQFTypes = createRFQListBox(filterData, stepNum);
   const progressBarHtml = createProgessBar(defaultProgessValue, stepNum);
 
   root.appendChild(h3(`Please select the ${tab} category`));
@@ -254,6 +248,29 @@ function stepTwo(e) {
   root.appendChild(createBackBtn(stepNum));
   root.style.display = 'block';
   prevRoot.style.display = 'none';
+}
+
+/* step three */
+function stepThree(tab, event) {
+  event.preventDefault();
+
+  const stepNum = 'step-3';
+  const prevRoot1 = document.getElementById('step-1');
+  const prevRoot2 = document.getElementById('step-2');
+  const root = document.getElementById(stepNum);
+  root.innerHTML = '';
+
+  loadIframeForm(tab, 'Global');
+
+  if (event.target.closest('.rfq-icon-link').classList.contains('no-categ')) {
+    root.classList.add('no-categ-form');
+  } else {
+    root.classList.remove('no-categ-form');
+  }
+
+  root.style.display = 'block';
+  prevRoot1.style.display = 'none';
+  prevRoot2.style.display = 'none';
 }
 
 export default async function decorate(block) {
@@ -290,7 +307,7 @@ export default async function decorate(block) {
       if (!rfqData) {
         rfqData = { title: pid, familyId: pid };
       }
-      loadIframeForm('step-3', rfqData, 'Product');
+      loadIframeForm(rfqData, 'Product');
     } else {
       block.appendChild(
         div(
