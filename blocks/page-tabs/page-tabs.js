@@ -32,8 +32,8 @@ async function createTabList(sections, active) {
           a({
             href: `#${sectionName}`,
             onclick: (e) => { 
-              section.title !== 'Ordering Options'? openTab(e.target): e.preventDefault(); 
-              window.open(`https://dev.lifesciences.danaher.com/us/en/products/family/low-profile-microplates-molecular-devices.html?referredBrand=moldev&referredPage=${window.location.href}`, '_blank'); 
+              const title = section.title;
+              title !== 'Ordering Options'? openTab(e.target): window.open(`https://dev.lifesciences.danaher.com/us/en/products/family/low-profile-microplates-molecular-devices.html?referredBrand=moldev&referredPage=${window.location.href}`, '_blank'); 
             },
           },
           section.title,
